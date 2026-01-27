@@ -14,9 +14,9 @@
 # limitations under the License.
 
 from xrtm.eval.core.eval.definitions import (
-    Evaluator,
-    EvaluationResult,
     EvaluationReport,
+    EvaluationResult,
+    Evaluator,
 )
 from xrtm.eval.kit.eval.metrics import (
     BrierScoreEvaluator,

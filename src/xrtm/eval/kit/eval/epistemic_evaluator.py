@@ -4,10 +4,11 @@
 import logging
 from typing import Any, Dict, Optional
 
-# From xrtm-forecast
-from xrtm.forecast.core.epistemics import IntegrityGuardian, SourceTrustRegistry
 # From xrtm-data
 from xrtm.data.schemas.forecast import ForecastOutput
+
+# From xrtm-forecast
+from xrtm.forecast.core.epistemics import IntegrityGuardian, SourceTrustRegistry
 
 logger = logging.getLogger(__name__)
 

@@ -2,7 +2,7 @@
 # Copyright 2026 XRTM Team. All rights reserved.
 
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from pydantic import BaseModel, Field
 

@@ -2,7 +2,9 @@
 # Copyright 2026 XRTM Team. All rights reserved.
 
 from typing import Any, Dict
+
 from xrtm.eval.core.eval.definitions import EvaluationResult, Evaluator
+
 
 class BiasInterceptor(Evaluator):
     COGNITIVE_BIASES = [

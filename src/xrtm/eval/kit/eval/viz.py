@@ -4,6 +4,7 @@
 import logging
 from dataclasses import dataclass
 from typing import Any, List, Optional
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,8 @@ def compute_calibration_curve(y_true: List[int], y_prob: List[float], n_bins: in
     total_samples = len(y_prob_arr)
     for i in range(n_bins):
         mask = binids == i
-        if not np.any(mask): continue
+        if not np.any(mask):
+            continue
         count = np.sum(mask)
         fraction_true = np.mean(y_true_arr[mask])
         mean_prob = np.mean(y_prob_arr[mask])
@@ -50,8 +52,10 @@ def plot_reliability_diagram(data: ReliabilityCurveData, title: str = "Reliabili
     ax.plot(data.prob_pred, data.prob_true, "s-", label=f"Model (ECE={data.ece:.3f})")
     ax.set_ylabel("Fraction of Positives")
     ax.set_xlabel("Mean Predicted Probability")
-    ax.set_ylim((-0.05, 1.05)); ax.set_xlim((-0.05, 1.05))
-    ax.set_title(title); ax.legend(loc="lower right")
+    ax.set_ylim((-0.05, 1.05))
+    ax.set_xlim((-0.05, 1.05))
+    ax.set_title(title)
+    ax.legend(loc="lower right")
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path)

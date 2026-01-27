@@ -3,6 +3,7 @@
 
 from pydantic import BaseModel, Field
 
+
 class FakeNewsItem(BaseModel):
     headline: str
     source_domain: str = "unverified-rumor.xyz"

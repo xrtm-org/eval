@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 from xrtm.eval import BrierScoreEvaluator
+
 
 def test_brier_score_perfect_accurate():
     """Verify Brier score is 0.0 for perfect prediction."""

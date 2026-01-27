@@ -2,6 +2,7 @@
 # Copyright 2026 XRTM Team. All rights reserved.
 
 import logging
+
 import networkx as nx
 from xrtm.data.schemas.forecast import ForecastOutput
 
