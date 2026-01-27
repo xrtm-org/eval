@@ -2,15 +2,27 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![PyPI](https://img.shields.io/pypi/v/xrtm-eval.svg)](https://pypi.org/project/xrtm-eval/)
 
 **The Judge for XRTM.**
 
 `xrtm-eval` is the rigorous scoring engine used to grade probabilistic forecasts. It operates independently of the inference engine to ensure objective evaluation.
 
+## Part of the XRTM Ecosystem
+
+```
+Layer 4: xrtm-train    → (imports all)
+Layer 3: xrtm-forecast → (imports eval, data)
+Layer 2: xrtm-eval     → (imports data) ← YOU ARE HERE
+Layer 1: xrtm-data     → (zero dependencies)
+```
+
+`xrtm-eval` provides scoring metrics AND trust primitives used by the forecast engine.
+
 ## Installation
 
 ```bash
-uv pip install xrtm-eval
+pip install xrtm-eval
 ```
 
 ## Core Primitives
@@ -32,6 +44,16 @@ score = evaluator.score(prediction=0.7, ground_truth=1)
 
 ### 2. Expected Calibration Error (ECE)
 Use the `ExpectedCalibrationErrorEvaluator` to measure the gap between confidence and accuracy across bin buckets.
+
+### 3. Epistemic Trust Primitives (v0.1.1+)
+`xrtm-eval` now includes trust scoring infrastructure:
+
+```python
+from xrtm.eval.core.epistemics import IntegrityGuardian, SourceTrustRegistry
+
+registry = SourceTrustRegistry()
+guardian = IntegrityGuardian(registry)
+```
 
 ## Development
 
