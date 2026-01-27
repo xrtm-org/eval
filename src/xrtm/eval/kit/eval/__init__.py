@@ -9,7 +9,6 @@ from xrtm.eval.kit.eval.intervention import InterventionEngine
 from xrtm.eval.kit.eval.metrics import BrierScoreEvaluator
 from xrtm.eval.kit.eval.resilience import AdversarialInjector, FakeNewsItem, GullibilityReport
 from xrtm.eval.kit.eval.viz import ReliabilityDiagram
-from xrtm.eval.kit.eval.workbench import AnalystWorkbench
 
 __all__ = [
     "Evaluator",
@@ -24,5 +23,4 @@ __all__ = [
     "AdversarialInjector",
     "GullibilityReport",
     "FakeNewsItem",
-    "AnalystWorkbench",
 ]

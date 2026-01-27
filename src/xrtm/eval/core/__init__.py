@@ -1,12 +1,14 @@
 # coding=utf-8
 # Copyright 2026 XRTM Team. All rights reserved.
 
+from .epistemics import IntegrityGuardian, SourceTrustEntry, SourceTrustRegistry
 from .eval import EvaluationReport, EvaluationResult, Evaluator
-from .verification import SovereigntyVerifier
 
 __all__ = [
     "Evaluator",
     "EvaluationResult",
     "EvaluationReport",
-    "SovereigntyVerifier",
+    "IntegrityGuardian",
+    "SourceTrustRegistry",
+    "SourceTrustEntry",
 ]
