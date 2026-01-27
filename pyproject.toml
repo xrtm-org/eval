@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xrtm-eval"
+version = "0.1.0"
+description = "The Judge/Scoring engine for XRTM."
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.0.0",
+    "numpy>=1.24.0",
+    "networkx>=3.0",
+    "xrtm-data",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = {find = {where = ["src"], include = ["xrtm*"], namespaces = true}}
