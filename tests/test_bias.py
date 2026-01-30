@@ -1,7 +1,10 @@
 # coding=utf-8
-import pytest
 from typing import Any
+
+import pytest
+
 from xrtm.eval.kit.eval.bias import BiasInterceptor
+
 
 class MockResponse:
     def __init__(self, text: str):
