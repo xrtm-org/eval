@@ -5,6 +5,8 @@ from typing import Any, List, Tuple, Union
 
 from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult, Evaluator, ReliabilityBin
 
+POSITIVE_TRUTH_VALUES = {"yes", "1", "true", "won", "pass"}
+
 
 class BrierScoreEvaluator(Evaluator):
     def score(self, prediction: Union[float, Any], ground_truth: Union[int, bool, str, Any]) -> float:
@@ -14,7 +16,7 @@ class BrierScoreEvaluator(Evaluator):
             raise ValueError(f"Prediction must be convertible to float. Got {prediction}")
 
         if isinstance(ground_truth, str):
-            o = 1.0 if ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
+            o = 1.0 if ground_truth.lower() in POSITIVE_TRUTH_VALUES else 0.0
         else:
             o = 1.0 if ground_truth else 0.0
 
@@ -41,7 +43,7 @@ class BrierScoreEvaluator(Evaluator):
         all_outcomes = []
         for r in results:
             if isinstance(r.ground_truth, str):
-                o = 1.0 if r.ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
+                o = 1.0 if r.ground_truth.lower() in POSITIVE_TRUTH_VALUES else 0.0
             else:
                 o = 1.0 if r.ground_truth else 0.0
             all_outcomes.append(o)
@@ -98,7 +100,7 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
                 accuracies = []
                 for x in bin_items:
                     gt = x.ground_truth
-                    normalized_gt = 1.0 if (gt.lower() in ["yes", "1", "true", "won", "pass"] if isinstance(gt, str) else gt) else 0.0
+                    normalized_gt = 1.0 if (gt.lower() in POSITIVE_TRUTH_VALUES if isinstance(gt, str) else gt) else 0.0
                     accuracies.append(normalized_gt)
 
                 mean_acc = sum(accuracies) / n_b
