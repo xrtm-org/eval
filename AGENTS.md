@@ -1,6 +1,7 @@
 ---
-# AGENT CONFIGURATION: xrtm-eval NODE
-# IDENTITY: THE JUDGE
+agent_node: xrtm-eval
+identity: THE JUDGE
+---
 
 ### 1. [PRIME DIRECTIVES] (Shared Core)
 - **Tech Stack**: Python (3.11+), Pydantic (v2), Polars (for dataframes).
