@@ -1,6 +1,7 @@
 
-from xrtm.eval.kit.eval.metrics import ExpectedCalibrationErrorEvaluator
 from xrtm.eval.core.eval.definitions import EvaluationResult
+from xrtm.eval.kit.eval.metrics import ExpectedCalibrationErrorEvaluator
+
 
 def test_ece_basic():
     evaluator = ExpectedCalibrationErrorEvaluator(num_bins=10)
