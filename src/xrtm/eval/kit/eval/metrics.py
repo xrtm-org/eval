@@ -73,15 +73,20 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
 
     def compute_calibration_data(self, results: List[EvaluationResult]) -> Tuple[float, List[ReliabilityBin]]:
         bin_size = 1.0 / self.num_bins
-        bins: List[List[EvaluationResult]] = [[] for _ in range(self.num_bins)]
+        bins: List[List[Tuple[float, float]]] = [[] for _ in range(self.num_bins)]
 
         for res in results:
             try:
-                conf = min(max(float(res.prediction), 0.0), 1.0)
+                raw_conf = float(res.prediction)
+                conf = min(max(raw_conf, 0.0), 1.0)
                 idx = int(conf / bin_size)
                 if idx == self.num_bins:
                     idx -= 1
-                bins[idx].append(res)
+
+                gt = res.ground_truth
+                normalized_gt = 1.0 if (gt.lower() in ["yes", "1", "true", "won", "pass"] if isinstance(gt, str) else gt) else 0.0
+
+                bins[idx].append((raw_conf, normalized_gt))
             except (ValueError, TypeError):
                 continue
 
@@ -94,14 +99,8 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
             bin_center = (i + 0.5) * bin_size
 
             if n_b > 0:
-                mean_conf = sum(float(x.prediction) for x in bin_items) / n_b
-                accuracies = []
-                for x in bin_items:
-                    gt = x.ground_truth
-                    normalized_gt = 1.0 if (gt.lower() in ["yes", "1", "true", "won", "pass"] if isinstance(gt, str) else gt) else 0.0
-                    accuracies.append(normalized_gt)
-
-                mean_acc = sum(accuracies) / n_b
+                mean_conf = sum(x[0] for x in bin_items) / n_b
+                mean_acc = sum(x[1] for x in bin_items) / n_b
                 ece += (n_b / total_count) * abs(mean_acc - mean_conf)
                 reliability_data.append(
                     ReliabilityBin(bin_center=bin_center, mean_prediction=mean_conf, mean_ground_truth=mean_acc, count=n_b)
