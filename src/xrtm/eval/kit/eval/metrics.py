@@ -5,6 +5,8 @@ from typing import Any, List, Tuple, Union
 
 from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult, Evaluator, ReliabilityBin
 
+POSITIVE_TRUTH_VALUES = {"yes", "1", "true", "won", "pass"}
+
 
 class BrierScoreEvaluator(Evaluator):
     def score(self, prediction: Union[float, Any], ground_truth: Union[int, bool, str, Any]) -> float:
@@ -14,7 +16,7 @@ class BrierScoreEvaluator(Evaluator):
             raise ValueError(f"Prediction must be convertible to float. Got {prediction}")
 
         if isinstance(ground_truth, str):
-            o = 1.0 if ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
+            o = 1.0 if ground_truth.lower() in POSITIVE_TRUTH_VALUES else 0.0
         else:
             o = 1.0 if ground_truth else 0.0
 
@@ -41,7 +43,7 @@ class BrierScoreEvaluator(Evaluator):
         all_outcomes = []
         for r in results:
             if isinstance(r.ground_truth, str):
-                o = 1.0 if r.ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
+                o = 1.0 if r.ground_truth.lower() in POSITIVE_TRUTH_VALUES else 0.0
             else:
                 o = 1.0 if r.ground_truth else 0.0
             all_outcomes.append(o)
@@ -99,8 +101,14 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
             bin_center = (i + 0.5) * bin_size
 
             if n_b > 0:
-                mean_conf = sum(x[0] for x in bin_items) / n_b
-                mean_acc = sum(x[1] for x in bin_items) / n_b
+                mean_conf = sum(float(x.prediction) for x in bin_items) / n_b
+                accuracies = []
+                for x in bin_items:
+                    gt = x.ground_truth
+                    normalized_gt = 1.0 if (gt.lower() in POSITIVE_TRUTH_VALUES if isinstance(gt, str) else gt) else 0.0
+                    accuracies.append(normalized_gt)
+
+                mean_acc = sum(accuracies) / n_b
                 ece += (n_b / total_count) * abs(mean_acc - mean_conf)
                 reliability_data.append(
                     ReliabilityBin(bin_center=bin_center, mean_prediction=mean_conf, mean_ground_truth=mean_acc, count=n_b)

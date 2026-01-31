@@ -14,6 +14,8 @@ class BiasInterceptor(Evaluator):
         "Status Quo Bias", "Framing Effect", "Recency Bias",
     ]
 
+    COGNITIVE_BIASES_STR = ", ".join(COGNITIVE_BIASES)
+
     def __init__(self, model: Any):
         self.model = model
 
@@ -24,7 +26,7 @@ class BiasInterceptor(Evaluator):
         prompt = f"""
         You are a Cognitive Bias Auditor specialized in probabilistic forecasting.
         Analyze the following reasoning trace for indicators of any of these biases:
-        {", ".join(self.COGNITIVE_BIASES)}
+        {self.COGNITIVE_BIASES_STR}
 
         Reasoning:
         "{reasoning}"
