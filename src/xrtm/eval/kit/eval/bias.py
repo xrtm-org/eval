@@ -8,10 +8,18 @@ from xrtm.eval.core.eval.definitions import EvaluationResult, Evaluator
 
 class BiasInterceptor(Evaluator):
     COGNITIVE_BIASES = [
-        "Base-Rate Neglect", "Overconfidence", "Availability Heuristic",
-        "Confirmation Bias", "Anchoring Bias", "Sunk Cost Fallacy",
-        "Hindsight Bias", "Optimism Bias", "Pessimism Bias",
-        "Status Quo Bias", "Framing Effect", "Recency Bias",
+        "Base-Rate Neglect",
+        "Overconfidence",
+        "Availability Heuristic",
+        "Confirmation Bias",
+        "Anchoring Bias",
+        "Sunk Cost Fallacy",
+        "Hindsight Bias",
+        "Optimism Bias",
+        "Pessimism Bias",
+        "Status Quo Bias",
+        "Framing Effect",
+        "Recency Bias",
     ]
 
     def __init__(self, model: Any):
@@ -45,5 +53,6 @@ class BiasInterceptor(Evaluator):
             prediction=prediction,
             metadata={"type": "bias_audit"},
         )
+
 
 __all__ = ["BiasInterceptor"]

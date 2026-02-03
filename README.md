@@ -55,6 +55,19 @@ registry = SourceTrustRegistry()
 guardian = IntegrityGuardian(registry)
 ```
 
+## Project Structure
+
+```
+src/xrtm/eval/
+├── core/            # Interfaces & Schemas
+│   ├── eval/            # Evaluator protocol, EvaluationResult
+│   ├── epistemics.py    # Trust primitives (SourceTrustRegistry)
+│   └── schemas/         # ForecastResolution
+├── kit/             # Composable evaluator implementations
+│   └── eval/metrics.py  # BrierScoreEvaluator, ECE
+└── providers/       # External evaluation services (future)
+```
+
 ## Development
 
 Prerequisites:

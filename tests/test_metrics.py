@@ -25,6 +25,7 @@ def test_brier_score_perfect_accurate():
     score = evaluator.score(prediction=0.0, ground_truth=0)
     assert score == 0.0
 
+
 def test_brier_score_worst_case():
     """Verify Brier score is 1.0 for completely wrong prediction."""
     evaluator = BrierScoreEvaluator()
@@ -34,11 +35,13 @@ def test_brier_score_worst_case():
     score = evaluator.score(prediction=0.0, ground_truth=1)
     assert score == 1.0
 
+
 def test_brier_score_uncertainty():
     """Verify Brier score for 0.5 prediction."""
     evaluator = BrierScoreEvaluator()
     score = evaluator.score(prediction=0.5, ground_truth=1)
     assert score == 0.25  # (0.5 - 1.0)^2 = 0.25
+
 
 def test_string_ground_truth_handling():
     """Verify string handling (Resolution logic)."""

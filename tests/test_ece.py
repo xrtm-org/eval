@@ -1,4 +1,3 @@
-
 from xrtm.eval.core.eval.definitions import EvaluationResult
 from xrtm.eval.kit.eval.metrics import ExpectedCalibrationErrorEvaluator
 
@@ -6,14 +5,15 @@ from xrtm.eval.kit.eval.metrics import ExpectedCalibrationErrorEvaluator
 def test_ece_basic():
     evaluator = ExpectedCalibrationErrorEvaluator(num_bins=10)
     results = [
-        EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=0.9, metadata={}), # Bin 9
-        EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.1, metadata={}), # Bin 1
+        EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=0.9, metadata={}),  # Bin 9
+        EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.1, metadata={}),  # Bin 1
     ]
     ece, bins = evaluator.compute_calibration_data(results)
     # Bin 9: 1 item, pred 0.9, gt 1. acc 1. mean_conf 0.9. abs(1 - 0.9) = 0.1
     # Bin 1: 1 item, pred 0.1, gt 0. acc 0. mean_conf 0.1. abs(0 - 0.1) = 0.1
     # ECE = (1/2)*0.1 + (1/2)*0.1 = 0.1
     assert abs(ece - 0.1) < 1e-6
+
 
 def test_ece_mixed_types():
     evaluator = ExpectedCalibrationErrorEvaluator(num_bins=2)
@@ -35,6 +35,7 @@ def test_ece_mixed_types():
     # ECE = (2/4)*abs(0 - 0.15) + (2/4)*abs(1 - 0.85) = 0.5 * 0.15 + 0.5 * 0.15 = 0.075 + 0.075 = 0.15
     ece, bins = evaluator.compute_calibration_data(results)
     assert abs(ece - 0.15) < 1e-6
+
 
 def test_ece_out_of_bounds():
     evaluator = ExpectedCalibrationErrorEvaluator(num_bins=10)
@@ -58,6 +59,7 @@ def test_ece_out_of_bounds():
     assert abs(bins[9].mean_prediction - 1.5) < 1e-6
     # The first bin should have mean_prediction -0.5
     assert abs(bins[0].mean_prediction + 0.5) < 1e-6
+
 
 if __name__ == "__main__":
     test_ece_basic()

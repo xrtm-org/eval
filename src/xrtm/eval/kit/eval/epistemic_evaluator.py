@@ -12,6 +12,7 @@ from xrtm.eval.core.epistemics import IntegrityGuardian, SourceTrustRegistry
 
 logger = logging.getLogger(__name__)
 
+
 class EpistemicEvaluator:
     def __init__(self, registry: Optional[SourceTrustRegistry] = None):
         self.registry = registry or SourceTrustRegistry()
@@ -27,5 +28,6 @@ class EpistemicEvaluator:
             "source_validation": validation,
             "integrity_level": "HIGH" if avg_trust > 0.8 else "MEDIUM" if avg_trust >= 0.5 else "LOW",
         }
+
 
 __all__ = ["EpistemicEvaluator"]

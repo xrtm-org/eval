@@ -8,6 +8,7 @@ from xrtm.data.schemas.forecast import ForecastOutput
 
 logger = logging.getLogger(__name__)
 
+
 class InterventionEngine:
     @staticmethod
     def apply_intervention(output: ForecastOutput, node_id: str, new_probability: float) -> ForecastOutput:
@@ -29,12 +30,18 @@ class InterventionEngine:
                 weight = data.get("weight", 1.0)
                 target_node = next(n for n in new_output.logical_trace if n.node_id == target_id)
                 old_target_prob = target_node.probability or 0.5
-                normalized_delta = (current_node.probability - (dg.nodes[current_id].get("probability") or 0.5)) * weight
+                normalized_delta = (
+                    current_node.probability - (dg.nodes[current_id].get("probability") or 0.5)
+                ) * weight
                 target_node.probability = max(0.0, min(1.0, old_target_prob + normalized_delta))
         leaf_nodes = [n for n in dg.nodes() if dg.out_degree(n) == 0]
         if leaf_nodes:
-            avg_leaf_prob = sum(next(n.probability for n in new_output.logical_trace if n.node_id == leaf_id) or 0.0 for leaf_id in leaf_nodes) / len(leaf_nodes)
+            avg_leaf_prob = sum(
+                next(n.probability for n in new_output.logical_trace if n.node_id == leaf_id) or 0.0
+                for leaf_id in leaf_nodes
+            ) / len(leaf_nodes)
             new_output.confidence = avg_leaf_prob
         return new_output
+
 
 __all__ = ["InterventionEngine"]
