@@ -30,11 +30,9 @@ class BrierDecomposition(BaseModel):
 
 
 class Evaluator(Protocol):
-    def score(self, prediction: Any, ground_truth: Any) -> float:
-        ...
+    def score(self, prediction: Any, ground_truth: Any) -> float: ...
 
-    def evaluate(self, prediction: Any, ground_truth: Any, subject_id: str) -> EvaluationResult:
-        ...
+    def evaluate(self, prediction: Any, ground_truth: Any, subject_id: str) -> EvaluationResult: ...
 
 
 class EvaluationReport(BaseModel):
@@ -55,6 +53,7 @@ class EvaluationReport(BaseModel):
     def to_pandas(self) -> Any:
         try:
             import pandas as pd
+
             return pd.DataFrame([r.model_dump() for r in self.results])
         except ImportError:
             raise ImportError("Pandas is required for to_pandas(). Install it with `pip install pandas`.")

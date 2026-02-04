@@ -84,7 +84,9 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
                     idx -= 1
 
                 gt = res.ground_truth
-                normalized_gt = 1.0 if (gt.lower() in ["yes", "1", "true", "won", "pass"] if isinstance(gt, str) else gt) else 0.0
+                normalized_gt = (
+                    1.0 if (gt.lower() in ["yes", "1", "true", "won", "pass"] if isinstance(gt, str) else gt) else 0.0
+                )
 
                 bins[idx].append((raw_conf, normalized_gt))
             except (ValueError, TypeError):
@@ -103,7 +105,9 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
                 mean_acc = sum(x[1] for x in bin_items) / n_b
                 ece += (n_b / total_count) * abs(mean_acc - mean_conf)
                 reliability_data.append(
-                    ReliabilityBin(bin_center=bin_center, mean_prediction=mean_conf, mean_ground_truth=mean_acc, count=n_b)
+                    ReliabilityBin(
+                        bin_center=bin_center, mean_prediction=mean_conf, mean_ground_truth=mean_acc, count=n_b
+                    )
                 )
             else:
                 reliability_data.append(

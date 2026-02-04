@@ -9,11 +9,13 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ReliabilityCurveData:
     prob_pred: np.ndarray
     prob_true: np.ndarray
     ece: float
+
 
 def compute_calibration_curve(y_true: List[int], y_prob: List[float], n_bins: int = 10) -> ReliabilityCurveData:
     y_true_arr = np.array(y_true)
@@ -39,7 +41,10 @@ def compute_calibration_curve(y_true: List[int], y_prob: List[float], n_bins: in
         ece += (count / total_samples) * np.abs(fraction_true - mean_prob)
     return ReliabilityCurveData(prob_pred=np.array(bin_pred), prob_true=np.array(bin_true), ece=ece)
 
-def plot_reliability_diagram(data: ReliabilityCurveData, title: str = "Reliability Diagram", save_path: Optional[str] = None) -> Any:
+
+def plot_reliability_diagram(
+    data: ReliabilityCurveData, title: str = "Reliability Diagram", save_path: Optional[str] = None
+) -> Any:
     try:
         import matplotlib.pyplot as plt
         import seaborn as sns
@@ -61,13 +66,17 @@ def plot_reliability_diagram(data: ReliabilityCurveData, title: str = "Reliabili
         plt.savefig(save_path)
     return fig
 
+
 class ReliabilityDiagram:
     def __init__(self, n_bins: int = 10):
         self.n_bins = n_bins
+
     def compute(self, y_true: List[int], y_prob: List[float]) -> ReliabilityCurveData:
         return compute_calibration_curve(y_true, y_prob, self.n_bins)
+
     def plot(self, y_true: List[int], y_prob: List[float], save_path: Optional[str] = None) -> Any:
         data = self.compute(y_true, y_prob)
         return plot_reliability_diagram(data, save_path=save_path)
+
 
 __all__ = ["ReliabilityCurveData", "compute_calibration_curve", "plot_reliability_diagram", "ReliabilityDiagram"]
