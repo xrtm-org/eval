@@ -36,8 +36,9 @@ class InterventionEngine:
                 target_node.probability = max(0.0, min(1.0, old_target_prob + normalized_delta))
         leaf_nodes = [n for n in dg.nodes() if dg.out_degree(n) == 0]
         if leaf_nodes:
+            trace_map = {n.node_id: n.probability for n in reversed(new_output.logical_trace)}
             avg_leaf_prob = sum(
-                next(n.probability for n in new_output.logical_trace if n.node_id == leaf_id) or 0.0
+                (trace_map[leaf_id] or 0.0)
                 for leaf_id in leaf_nodes
             ) / len(leaf_nodes)
             new_output.confidence = avg_leaf_prob
