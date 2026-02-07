@@ -38,15 +38,9 @@ class BrierScoreEvaluator(Evaluator):
         if total_count == 0:
             return BrierDecomposition(reliability=0.0, resolution=0.0, uncertainty=0.0, score=0.0)
 
-        all_outcomes = []
-        for r in results:
-            if isinstance(r.ground_truth, str):
-                o = 1.0 if r.ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
-            else:
-                o = 1.0 if r.ground_truth else 0.0
-            all_outcomes.append(o)
-
-        o_bar = sum(all_outcomes) / total_count
+        # Derive o_bar from bins to avoid redundant iteration
+        valid_count = sum(b.count for b in bins)
+        o_bar = sum(b.mean_ground_truth * b.count for b in bins) / valid_count if valid_count > 0 else 0.0
         uncertainty = o_bar * (1.0 - o_bar)
 
         reliability = 0.0

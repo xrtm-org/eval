@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from xrtm.eval import BrierScoreEvaluator
+from xrtm.eval.core.eval.definitions import EvaluationResult
 
 
 def test_brier_score_perfect_accurate():
@@ -51,3 +52,31 @@ def test_string_ground_truth_handling():
 
     score = evaluator.score(prediction=0.1, ground_truth="No")
     assert score == (0.1 - 0.0) ** 2
+
+
+def test_brier_decomposition_simple():
+    """Verify Brier decomposition components for a simple case."""
+    evaluator = BrierScoreEvaluator()
+    results = [
+        EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=0.8, metadata={}),
+        EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.2, metadata={}),
+    ]
+    # num_bins=10 by default.
+    # 0.8 -> bin 7 (0.7-0.8) or 8 (0.8-0.9)? 0.8/0.1 = 8. idx 8.
+    # 0.2 -> bin 2.
+
+    # Let's use num_bins=2 to match manual calculation
+    decomp = evaluator.compute_decomposition(results, num_bins=2)
+
+    # o_bar = 0.5
+    # Uncertainty = 0.25
+    assert abs(decomp.uncertainty - 0.25) < 1e-6
+
+    # Reliability = 0.04
+    assert abs(decomp.reliability - 0.04) < 1e-6
+
+    # Resolution = 0.25
+    assert abs(decomp.resolution - 0.25) < 1e-6
+
+    # Score = 0.04
+    assert abs(decomp.score - 0.04) < 1e-6
