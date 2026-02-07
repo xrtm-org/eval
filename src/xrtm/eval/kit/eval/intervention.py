@@ -16,19 +16,22 @@ class InterventionEngine:
         dg = new_output.to_networkx()
         if node_id not in dg:
             raise ValueError(f"Node ID '{node_id}' not found in the causal graph.")
-        for node in new_output.logical_trace:
-            if node.node_id == node_id:
-                node.probability = new_probability
-                break
-        else:
+
+        # Optimization: Map node IDs to nodes for O(1) lookup
+        node_map = {node.node_id: node for node in new_output.logical_trace}
+
+        if node_id not in node_map:
             raise ValueError(f"Node ID '{node_id}' not found in logical_trace.")
+
+        node_map[node_id].probability = new_probability
+
         nodes_ordered = list(nx.topological_sort(dg))
         start_index = nodes_ordered.index(node_id)
         for current_id in nodes_ordered[start_index:]:
-            current_node = next(n for n in new_output.logical_trace if n.node_id == current_id)
+            current_node = node_map[current_id]
             for _, target_id, data in dg.out_edges(current_id, data=True):
                 weight = data.get("weight", 1.0)
-                target_node = next(n for n in new_output.logical_trace if n.node_id == target_id)
+                target_node = node_map[target_id]
                 old_target_prob = target_node.probability or 0.5
                 normalized_delta = (
                     current_node.probability - (dg.nodes[current_id].get("probability") or 0.5)
@@ -37,7 +40,7 @@ class InterventionEngine:
         leaf_nodes = [n for n in dg.nodes() if dg.out_degree(n) == 0]
         if leaf_nodes:
             avg_leaf_prob = sum(
-                next(n.probability for n in new_output.logical_trace if n.node_id == leaf_id) or 0.0
+                (node_map[leaf_id].probability or 0.0)
                 for leaf_id in leaf_nodes
             ) / len(leaf_nodes)
             new_output.confidence = avg_leaf_prob
