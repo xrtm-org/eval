@@ -13,10 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .definitions import EvaluationReport, EvaluationResult, Evaluator
+r"""
+Kit metrics subpackage for xrtm-eval.
+
+Exports all metric implementations including Beta distribution evaluators.
+"""
+
+from xrtm.eval.kit.metrics.beta_nll import (
+    BetaDistributionEvaluator,
+    BetaNLLLoss,
+    beta_calibration_error,
+    kl_divergence_beta,
+)
 
 __all__ = [
-    "Evaluator",
-    "EvaluationResult",
-    "EvaluationReport",
+    "BetaNLLLoss",
+    "kl_divergence_beta",
+    "beta_calibration_error",
+    "BetaDistributionEvaluator",
 ]
