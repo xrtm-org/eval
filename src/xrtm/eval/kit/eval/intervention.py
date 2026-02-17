@@ -51,9 +51,10 @@ class InterventionEngine:
             trace_map = {n.node_id: n.probability for n in reversed(new_output.logical_trace)}
             total_leaf_prob = 0.0
             for leaf_id in leaf_nodes:
-                if leaf_id not in trace_map:
+                prob = trace_map.get(leaf_id)
+                if prob is None:
                     raise ValueError(f"Leaf node ID '{leaf_id}' not found in logical_trace.")
-                total_leaf_prob += (trace_map[leaf_id] or 0.0)
+                total_leaf_prob += prob
             avg_leaf_prob = total_leaf_prob / len(leaf_nodes)
             new_output.confidence = avg_leaf_prob
         return new_output
