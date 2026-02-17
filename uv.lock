@@ -1244,8 +1244,8 @@ wheels = [
 
 [[package]]
 name = "xrtm-data"
-version = "0.2.0"
-source = { editable = "../data" }
+version = "0.2.1"
+source = { git = "https://github.com/xrtm-org/data.git?tag=v0.2.1#eba3eec2558066efb39734bccd9dc5955b651397" }
 dependencies = [
     { name = "aiohttp" },
     { name = "click" },
@@ -1254,22 +1254,6 @@ dependencies = [
     { name = "rich" },
     { name = "scipy" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "aiohttp", specifier = ">=3.9.0" },
-    { name = "click", specifier = ">=8.0.0" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.0.0" },
-    { name = "pyarrow", specifier = ">=14.0.0" },
-    { name = "pydantic", specifier = ">=2.0.0" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
-    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
-    { name = "rich", specifier = ">=13.0.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
-    { name = "scipy", specifier = ">=1.11.0" },
-]
-provides-extras = ["dev"]
 
 [[package]]
 name = "xrtm-eval"
@@ -1301,7 +1285,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.21.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
-    { name = "xrtm-data", editable = "../data" },
+    { name = "xrtm-data", git = "https://github.com/xrtm-org/data.git?tag=v0.2.1" },
 ]
 provides-extras = ["dev"]
 
