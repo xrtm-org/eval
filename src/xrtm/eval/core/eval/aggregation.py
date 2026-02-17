@@ -23,7 +23,7 @@ for multi-agent consensus pipelines.
 from typing import List, Tuple
 
 # From xrtm-data
-from xrtm.data.core.schemas.forecast import ForecastOutput
+from xrtm.data import ForecastOutput
 
 
 def inverse_variance_weighting(

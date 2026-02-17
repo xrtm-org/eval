@@ -17,7 +17,7 @@ import logging
 from typing import Any, Dict, Optional
 
 # From xrtm-data
-from xrtm.data.core.schemas.forecast import ForecastOutput
+from xrtm.data import ForecastOutput
 
 # From xrtm-eval (local)
 from xrtm.eval.core.epistemics import IntegrityGuardian, SourceTrustRegistry

@@ -27,6 +27,7 @@ from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult
 
 class BrierScoreEvaluator(Evaluator):
     r"""Evaluator that computes the Brier score for binary probabilistic predictions."""
+
     def score(self, prediction: Union[float, Any], ground_truth: Union[int, bool, str, Any]) -> float:
         try:
             f = float(prediction)
@@ -54,11 +55,12 @@ class BrierScoreEvaluator(Evaluator):
         ece_eval = ExpectedCalibrationErrorEvaluator(num_bins=num_bins)
         _, bins = ece_eval.compute_calibration_data(results)
 
-        # Derive o_bar from bins to avoid redundant iteration
+        # Use valid_count (only convertible predictions) as the denominator for consistency
         valid_count = sum(b.count for b in bins)
         if valid_count == 0:
             return BrierDecomposition(reliability=0.0, resolution=0.0, uncertainty=0.0, score=0.0)
 
+        # Derive o_bar from bins to avoid redundant iteration
         o_bar = sum(b.mean_ground_truth * b.count for b in bins) / valid_count
         uncertainty = o_bar * (1.0 - o_bar)
 
@@ -76,6 +78,7 @@ class BrierScoreEvaluator(Evaluator):
 
 class ExpectedCalibrationErrorEvaluator(Evaluator):
     r"""Evaluator that computes Expected Calibration Error via reliability diagrams."""
+
     def __init__(self, num_bins: int = 10):
         self.num_bins = num_bins
 

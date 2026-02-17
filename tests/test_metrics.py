@@ -62,7 +62,6 @@ def test_brier_decomposition_simple():
         EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.2, metadata={}),
     ]
 
-    # Use num_bins=2 to check manual calculation
     decomp = evaluator.compute_decomposition(results, num_bins=2)
 
     # o_bar = 0.5
@@ -94,6 +93,26 @@ def test_brier_decomposition_with_invalid_data():
     # to the count of valid results (2).
     decomp = evaluator.compute_decomposition(results, num_bins=2)
 
+    assert abs(decomp.uncertainty - 0.25) < 1e-6
+    assert abs(decomp.reliability - 0.04) < 1e-6
+    assert abs(decomp.resolution - 0.25) < 1e-6
+    assert abs(decomp.score - 0.04) < 1e-6
+
+
+def test_brier_decomposition_with_invalid_predictions():
+    """Verify decomposition handles invalid predictions correctly and consistently."""
+    evaluator = BrierScoreEvaluator()
+    results = [
+        EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=0.8, metadata={}),
+        EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.2, metadata={}),
+        EvaluationResult(subject_id="3", score=0, ground_truth=1, prediction="not-a-float", metadata={}),
+        EvaluationResult(subject_id="4", score=0, ground_truth=0, prediction=None, metadata={}),
+    ]
+
+    decomp = evaluator.compute_decomposition(results, num_bins=2)
+
+    # Invalid predictions should be skipped, so decomposition should be computed
+    # only from the 2 valid predictions (same as test_brier_decomposition_simple)
     assert abs(decomp.uncertainty - 0.25) < 1e-6
     assert abs(decomp.reliability - 0.04) < 1e-6
     assert abs(decomp.resolution - 0.25) < 1e-6

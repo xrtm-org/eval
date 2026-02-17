@@ -16,7 +16,7 @@
 import logging
 
 import networkx as nx
-from xrtm.data.core.schemas.forecast import ForecastOutput
+from xrtm.data import ForecastOutput
 
 logger = logging.getLogger(__name__)
 
