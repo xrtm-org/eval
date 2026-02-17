@@ -34,20 +34,19 @@ class BrierScoreEvaluator(Evaluator):
         ece_eval = ExpectedCalibrationErrorEvaluator(num_bins=num_bins)
         _, bins = ece_eval.compute_calibration_data(results)
 
-        total_count = len(results)
-        if total_count == 0:
-            return BrierDecomposition(reliability=0.0, resolution=0.0, uncertainty=0.0, score=0.0)
-
         # Derive o_bar from bins to avoid redundant iteration
         valid_count = sum(b.count for b in bins)
-        o_bar = sum(b.mean_ground_truth * b.count for b in bins) / valid_count if valid_count > 0 else 0.0
+        if valid_count == 0:
+            return BrierDecomposition(reliability=0.0, resolution=0.0, uncertainty=0.0, score=0.0)
+
+        o_bar = sum(b.mean_ground_truth * b.count for b in bins) / valid_count
         uncertainty = o_bar * (1.0 - o_bar)
 
         reliability = 0.0
         resolution = 0.0
 
         for b in bins:
-            w_k = b.count / total_count
+            w_k = b.count / valid_count
             reliability += w_k * (b.mean_prediction - b.mean_ground_truth) ** 2
             resolution += w_k * (b.mean_ground_truth - o_bar) ** 2
 

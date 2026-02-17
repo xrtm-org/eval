@@ -61,22 +61,40 @@ def test_brier_decomposition_simple():
         EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=0.8, metadata={}),
         EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.2, metadata={}),
     ]
-    # num_bins=10 by default.
-    # 0.8 -> bin 7 (0.7-0.8) or 8 (0.8-0.9)? 0.8/0.1 = 8. idx 8.
-    # 0.2 -> bin 2.
 
-    # Let's use num_bins=2 to match manual calculation
+    # Use num_bins=2 to check manual calculation
     decomp = evaluator.compute_decomposition(results, num_bins=2)
 
     # o_bar = 0.5
-    # Uncertainty = 0.25
+    # Uncertainty = 0.5 * (1 - 0.5) = 0.25
     assert abs(decomp.uncertainty - 0.25) < 1e-6
 
-    # Reliability = 0.04
+    # Reliability = (0.5 * (0.8 - 1.0)^2) + (0.5 * (0.2 - 0.0)^2) = 0.5*0.04 + 0.5*0.04 = 0.02 + 0.02 = 0.04
+    # Note: ReliabilityBin mean_ground_truth will be 1.0 and 0.0 respectively
     assert abs(decomp.reliability - 0.04) < 1e-6
 
-    # Resolution = 0.25
+    # Resolution = (0.5 * (1.0 - 0.5)^2) + (0.5 * (0.0 - 0.5)^2) = 0.5*0.25 + 0.5*0.25 = 0.125 + 0.125 = 0.25
     assert abs(decomp.resolution - 0.25) < 1e-6
 
-    # Score = 0.04
+    # Score = Reliability - Resolution + Uncertainty = 0.04 - 0.25 + 0.25 = 0.04
+    assert abs(decomp.score - 0.04) < 1e-6
+
+
+def test_brier_decomposition_with_invalid_data():
+    """Verify Brier decomposition ignores invalid predictions and maintains consistency."""
+    evaluator = BrierScoreEvaluator()
+    results = [
+        EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=0.8, metadata={}),
+        EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=0.2, metadata={}),
+        EvaluationResult(subject_id="3", score=0, ground_truth=1, prediction="invalid", metadata={}),
+    ]
+
+    # This should produce the same result as `test_brier_decomposition_simple`
+    # because the invalid result is ignored and the weights are re-normalized
+    # to the count of valid results (2).
+    decomp = evaluator.compute_decomposition(results, num_bins=2)
+
+    assert abs(decomp.uncertainty - 0.25) < 1e-6
+    assert abs(decomp.reliability - 0.04) < 1e-6
+    assert abs(decomp.resolution - 0.25) < 1e-6
     assert abs(decomp.score - 0.04) < 1e-6
