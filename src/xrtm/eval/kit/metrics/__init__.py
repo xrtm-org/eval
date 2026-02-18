@@ -14,15 +14,21 @@
 # limitations under the License.
 
 r"""
-Version information for xrtm-eval.
+Kit metrics subpackage for xrtm-eval.
 
-This module provides the single source of truth for the package version.
+Exports all metric implementations including Beta distribution evaluators.
 """
 
-__all__ = ["__version__", "__author__", "__contact__", "__license__", "__copyright__"]
+from xrtm.eval.kit.metrics.beta_nll import (
+    BetaDistributionEvaluator,
+    BetaNLLLoss,
+    beta_calibration_error,
+    kl_divergence_beta,
+)
 
-__version__ = "0.2.1"
-__author__ = "XRTM Team"
-__contact__ = "moy@xrtm.org"
-__license__ = "Apache-2.0"
-__copyright__ = "Copyright 2026 XRTM Team"
+__all__ = [
+    "BetaNLLLoss",
+    "kl_divergence_beta",
+    "beta_calibration_error",
+    "BetaDistributionEvaluator",
+]
