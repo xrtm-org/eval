@@ -1,5 +1,24 @@
 # coding=utf-8
 # Copyright 2026 XRTM Team. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+r"""
+Scoring evaluators for probabilistic forecasting.
+
+Provides concrete ``Evaluator`` implementations for Brier Score and
+Expected Calibration Error (ECE), including full Murphy decomposition.
+"""
 
 from typing import Any, List, Tuple, Union
 
@@ -7,6 +26,7 @@ from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult
 
 
 class BrierScoreEvaluator(Evaluator):
+    r"""Evaluator that computes the Brier score for binary probabilistic predictions."""
     def score(self, prediction: Union[float, Any], ground_truth: Union[int, bool, str, Any]) -> float:
         try:
             f = float(prediction)
@@ -55,6 +75,7 @@ class BrierScoreEvaluator(Evaluator):
 
 
 class ExpectedCalibrationErrorEvaluator(Evaluator):
+    r"""Evaluator that computes Expected Calibration Error via reliability diagrams."""
     def __init__(self, num_bins: int = 10):
         self.num_bins = num_bins
 
