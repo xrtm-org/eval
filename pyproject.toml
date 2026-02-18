@@ -33,10 +33,9 @@ package-dir = {"" = "src"}
 packages = {find = {where = ["src"], include = ["xrtm*"], namespaces = true}}
 
 [tool.uv.sources]
-xrtm-data = { git = "https://github.com/xrtm-org/data.git", branch = "main" }
+xrtm-data = { workspace = true }
 
 [tool.pytest.ini_options]
-pythonpath = ["."]
 testpaths = ["tests"]
 asyncio_mode = "strict"
 

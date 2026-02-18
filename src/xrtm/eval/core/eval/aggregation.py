@@ -25,6 +25,8 @@ from typing import List, Tuple
 # From xrtm-data
 from xrtm.data.core.schemas.forecast import ForecastOutput
 
+__all__ = ["inverse_variance_weighting", "robustness_check_mad"]
+
 
 def inverse_variance_weighting(
     predictions: List[ForecastOutput], default_variance: float = 0.05
