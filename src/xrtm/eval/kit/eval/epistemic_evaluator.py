@@ -32,8 +32,7 @@ class EpistemicEvaluator:
 
     async def evaluate_forecast_integrity(self, output: ForecastOutput) -> Dict[str, Any]:
         sources = output.metadata.get("sources", [])
-        validation = await self.guardian.validate_data_sources(sources)
-        scores = [self.registry.get_trust_score(s) for s in sources]
+        validation, scores = await self.guardian.validate_data_sources(sources)
         avg_trust = sum(scores) / len(scores) if scores else 0.5
         return {
             "aggregate_trust_score": avg_trust,

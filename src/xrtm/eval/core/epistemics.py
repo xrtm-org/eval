@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import logging
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 from pydantic import BaseModel, Field
 
@@ -123,7 +123,7 @@ class IntegrityGuardian:
         self.registry = registry
         self.threshold = threshold
 
-    async def validate_data_sources(self, sources: List[str]) -> Dict[str, List[str]]:
+    async def validate_data_sources(self, sources: List[str]) -> Tuple[Dict[str, List[str]], List[float]]:
         r"""
         Checks a list of sources against the trust registry.
 
@@ -132,20 +132,24 @@ class IntegrityGuardian:
                 A list of domain names to validate.
 
         Returns:
-            `Dict[str, List[str]]`:
-                A dictionary categorizing sources into "passed", "flagged", and "blocked".
+            `Tuple[Dict[str, List[str]], List[float]]`:
+                A tuple containing:
+                - A dictionary categorizing sources into "passed", "flagged", and "blocked".
+                - A list of trust scores corresponding to the input sources.
 
         Example:
             ```python
-            >>> results = await guardian.validate_data_sources(["reputable.org", "shady.com"])
+            >>> results, scores = await guardian.validate_data_sources(["reputable.org", "shady.com"])
             >>> print(results["blocked"])
             ['shady.com']
             ```
         """
         results: Dict[str, List[str]] = {"passed": [], "flagged": [], "blocked": []}
+        scores: List[float] = []
 
         for src in sources:
             score = self.registry.get_trust_score(src)
+            scores.append(score)
             if score < self.threshold:
                 results["blocked"].append(src)
             elif score < 0.5:
@@ -153,4 +157,4 @@ class IntegrityGuardian:
             else:
                 results["passed"].append(src)
 
-        return results
+        return results, scores
