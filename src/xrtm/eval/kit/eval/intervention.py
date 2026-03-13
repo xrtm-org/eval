@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Causal graph intervention analysis.
+
+Provides the ``InterventionEngine`` that applies do-calculus-style
+interventions to a ``ForecastOutput`` by setting a node's probability to a
+fixed value and propagating the change through the causal graph using
+topological ordering.
+"""
+
 import logging
 
 import networkx as nx

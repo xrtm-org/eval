@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Tag-based slice analytics for evaluation results.
+
+Provides ``SliceAnalytics`` which partitions a list of ``EvaluationResult``
+objects by their metadata tags and computes per-slice calibration reports,
+enabling fine-grained performance analysis across demographic or topical
+segments.
+"""
+
 import logging
 from typing import Dict, List
 

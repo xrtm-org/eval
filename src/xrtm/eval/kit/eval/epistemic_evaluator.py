@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Forecast output integrity assessment.
+
+Provides the ``EpistemicEvaluator`` that validates a forecast's cited data
+sources against the ``SourceTrustRegistry``, computing an aggregate trust
+score and integrity classification for each prediction output.
+"""
+
 import logging
 from typing import Any, Dict, Optional
 

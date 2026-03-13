@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Adversarial injection testing for epistemic robustness.
+
+Provides the ``AdversarialInjector`` that generates synthetic disinformation
+items, injects them into a forecast pipeline, and measures how much the
+agent's confidence shifts, producing a ``GullibilityReport`` with a resilience
+score.
+"""
+
 from pydantic import BaseModel, Field
 
 
