@@ -13,6 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Source trust registry and data integrity validation.
+
+Maintains per-domain trust scores and provides the ``IntegrityGuardian`` that
+validates incoming data sources against the registry, enabling the epistemic
+security layer of the evaluation pipeline.
+"""
+
 import logging
 from typing import Dict, List, Optional, Set
 

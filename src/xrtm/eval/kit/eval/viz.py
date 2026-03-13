@@ -13,6 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Calibration visualization with reliability diagrams.
+
+Computes binned calibration curves from predictions and ground truth, and
+renders reliability diagrams using matplotlib and seaborn. Supports both
+functional and object-oriented interfaces via ``compute_calibration_curve``
+and ``ReliabilityDiagram``.
+"""
+
 import logging
 from dataclasses import dataclass
 from typing import Any, List, Optional
