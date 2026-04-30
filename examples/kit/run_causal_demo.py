@@ -15,7 +15,7 @@
 
 import asyncio
 
-from xrtm.data.schemas.forecast import CausalEdge, CausalNode, ForecastOutput
+from xrtm.data import CausalEdge, CausalNode, ForecastOutput
 
 from xrtm.eval.kit.eval.intervention import InterventionEngine
 
