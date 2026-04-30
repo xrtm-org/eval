@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xrtm-eval"
-version = "0.2.2"
+version = "0.2.3"
 description = "The Judge/Scoring engine for XRTM."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,9 +31,6 @@ dev = [
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = {find = {where = ["src"], include = ["xrtm*"], namespaces = true}}
-
-[tool.uv.sources]
-xrtm-data = { workspace = true }
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
