@@ -161,3 +161,20 @@ class IntegrityGuardian:
                 results["passed"].append(src)
 
         return results
+
+    async def validate_data_sources_with_scores(self, sources: List[str]) -> tuple[Dict[str, List[str]], List[float]]:
+        r"""Validate sources and return trust scores from the same pass."""
+        results: Dict[str, List[str]] = {"passed": [], "flagged": [], "blocked": []}
+        scores: List[float] = []
+
+        for src in sources:
+            score = self.registry.get_trust_score(src)
+            scores.append(score)
+            if score < self.threshold:
+                results["blocked"].append(src)
+            elif score < 0.5:
+                results["flagged"].append(src)
+            else:
+                results["passed"].append(src)
+
+        return results, scores

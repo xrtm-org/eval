@@ -24,6 +24,14 @@ from typing import Any, List, Tuple, Union
 
 from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult, Evaluator, ReliabilityBin
 
+TRUE_VALUES = {"yes", "1", "true", "won", "pass"}
+
+
+def _normalize_ground_truth(ground_truth: Any) -> float:
+    if isinstance(ground_truth, str):
+        return 1.0 if ground_truth.lower() in TRUE_VALUES else 0.0
+    return 1.0 if ground_truth else 0.0
+
 
 class BrierScoreEvaluator(Evaluator):
     r"""Evaluator that computes the Brier score for binary probabilistic predictions."""
@@ -33,10 +41,7 @@ class BrierScoreEvaluator(Evaluator):
         except (ValueError, TypeError):
             raise ValueError(f"Prediction must be convertible to float. Got {prediction}")
 
-        if isinstance(ground_truth, str):
-            o = 1.0 if ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
-        else:
-            o = 1.0 if ground_truth else 0.0
+        o = _normalize_ground_truth(ground_truth)
 
         return (f - o) ** 2
 
@@ -54,26 +59,26 @@ class BrierScoreEvaluator(Evaluator):
         ece_eval = ExpectedCalibrationErrorEvaluator(num_bins=num_bins)
         _, bins = ece_eval.compute_calibration_data(results)
 
-        total_count = len(results)
-        if total_count == 0:
+        valid_results = []
+        for r in results:
+            try:
+                valid_results.append((float(r.prediction), _normalize_ground_truth(r.ground_truth)))
+            except (ValueError, TypeError):
+                continue
+
+        valid_count = len(valid_results)
+        if valid_count == 0:
             return BrierDecomposition(reliability=0.0, resolution=0.0, uncertainty=0.0, score=0.0)
 
-        all_outcomes = []
-        for r in results:
-            if isinstance(r.ground_truth, str):
-                o = 1.0 if r.ground_truth.lower() in ["yes", "1", "true", "won", "pass"] else 0.0
-            else:
-                o = 1.0 if r.ground_truth else 0.0
-            all_outcomes.append(o)
-
-        o_bar = sum(all_outcomes) / total_count
+        all_outcomes = [outcome for _, outcome in valid_results]
+        o_bar = sum(all_outcomes) / valid_count
         uncertainty = o_bar * (1.0 - o_bar)
 
         reliability = 0.0
         resolution = 0.0
 
         for b in bins:
-            w_k = b.count / total_count
+            w_k = b.count / valid_count
             reliability += w_k * (b.mean_prediction - b.mean_ground_truth) ** 2
             resolution += w_k * (b.mean_ground_truth - o_bar) ** 2
 
@@ -104,16 +109,13 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
                 if idx == self.num_bins:
                     idx -= 1
 
-                gt = res.ground_truth
-                normalized_gt = (
-                    1.0 if (gt.lower() in ["yes", "1", "true", "won", "pass"] if isinstance(gt, str) else gt) else 0.0
-                )
+                normalized_gt = _normalize_ground_truth(res.ground_truth)
 
                 bins[idx].append((raw_conf, normalized_gt))
             except (ValueError, TypeError):
                 continue
 
-        total_count = len(results)
+        valid_count = sum(len(bin_items) for bin_items in bins)
         ece = 0.0
         reliability_data = []
 
@@ -124,7 +126,7 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
             if n_b > 0:
                 mean_conf = sum(x[0] for x in bin_items) / n_b
                 mean_acc = sum(x[1] for x in bin_items) / n_b
-                ece += (n_b / total_count) * abs(mean_acc - mean_conf)
+                ece += (n_b / valid_count) * abs(mean_acc - mean_conf)
                 reliability_data.append(
                     ReliabilityBin(
                         bin_center=bin_center, mean_prediction=mean_conf, mean_ground_truth=mean_acc, count=n_b

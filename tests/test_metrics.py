@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from xrtm.eval import BrierScoreEvaluator
+import pytest
+
+from xrtm.eval import BrierScoreEvaluator, ExpectedCalibrationErrorEvaluator
+from xrtm.eval.core.eval.definitions import EvaluationResult
 
 
 def test_brier_score_perfect_accurate():
@@ -51,3 +54,32 @@ def test_string_ground_truth_handling():
 
     score = evaluator.score(prediction=0.1, ground_truth="No")
     assert score == (0.1 - 0.0) ** 2
+
+
+def test_brier_decomposition_skips_invalid_predictions_consistently():
+    evaluator = BrierScoreEvaluator()
+    results = [
+        EvaluationResult(subject_id="a", prediction=0.8, ground_truth=1, score=0.04),
+        EvaluationResult(subject_id="b", prediction=0.2, ground_truth=0, score=0.04),
+        EvaluationResult(subject_id="c", prediction="invalid", ground_truth=1, score=1.0),
+    ]
+
+    decomp = evaluator.compute_decomposition(results, num_bins=2)
+
+    assert decomp.score == pytest.approx(decomp.reliability - decomp.resolution + decomp.uncertainty)
+    assert decomp.uncertainty == pytest.approx(0.25)
+
+
+def test_brier_decomposition_all_invalid_returns_zero():
+    evaluator = BrierScoreEvaluator()
+    results = [
+        EvaluationResult(subject_id="a", prediction="invalid", ground_truth=1, score=1.0),
+        EvaluationResult(subject_id="b", prediction=None, ground_truth=0, score=1.0),
+    ]
+
+    decomp = evaluator.compute_decomposition(results)
+    ece, bins = ExpectedCalibrationErrorEvaluator().compute_calibration_data(results)
+
+    assert decomp.score == 0.0
+    assert ece == 0.0
+    assert sum(bin.count for bin in bins) == 0

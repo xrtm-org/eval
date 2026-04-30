@@ -44,11 +44,12 @@ class InterventionEngine:
             raise ValueError(f"Node ID '{node_id}' not found in logical_trace.")
         nodes_ordered = list(nx.topological_sort(dg))
         start_index = nodes_ordered.index(node_id)
+        trace_map = {node.node_id: node for node in reversed(new_output.logical_trace)}
         for current_id in nodes_ordered[start_index:]:
-            current_node = next(n for n in new_output.logical_trace if n.node_id == current_id)
+            current_node = trace_map[current_id]
             for _, target_id, data in dg.out_edges(current_id, data=True):
                 weight = data.get("weight", 1.0)
-                target_node = next(n for n in new_output.logical_trace if n.node_id == target_id)
+                target_node = trace_map[target_id]
                 old_target_prob = target_node.probability or 0.5
                 normalized_delta = (
                     current_node.probability - (dg.nodes[current_id].get("probability") or 0.5)
@@ -56,10 +57,12 @@ class InterventionEngine:
                 target_node.probability = max(0.0, min(1.0, old_target_prob + normalized_delta))
         leaf_nodes = [n for n in dg.nodes() if dg.out_degree(n) == 0]
         if leaf_nodes:
-            avg_leaf_prob = sum(
-                next(n.probability for n in new_output.logical_trace if n.node_id == leaf_id) or 0.0
-                for leaf_id in leaf_nodes
-            ) / len(leaf_nodes)
+            leaf_probabilities = []
+            for leaf_id in leaf_nodes:
+                if leaf_id not in trace_map:
+                    raise ValueError(f"Leaf node ID '{leaf_id}' not found in logical_trace.")
+                leaf_probabilities.append(trace_map[leaf_id].probability or 0.0)
+            avg_leaf_prob = sum(leaf_probabilities) / len(leaf_nodes)
             new_output.confidence = avg_leaf_prob
         return new_output
 
