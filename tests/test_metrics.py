@@ -46,6 +46,19 @@ def test_brier_score_uncertainty():
     assert score == 0.25  # (0.5 - 1.0)^2 = 0.25
 
 
+@pytest.mark.parametrize("prediction", [i / 10 for i in range(11)])
+def test_brier_score_probability_properties(prediction):
+    evaluator = BrierScoreEvaluator()
+
+    positive_score = evaluator.score(prediction=prediction, ground_truth=1)
+    negative_score = evaluator.score(prediction=prediction, ground_truth=0)
+
+    assert 0.0 <= positive_score <= 1.0
+    assert 0.0 <= negative_score <= 1.0
+    assert positive_score == pytest.approx((prediction - 1.0) ** 2)
+    assert positive_score == pytest.approx(evaluator.score(prediction=1.0 - prediction, ground_truth=0))
+
+
 def test_string_ground_truth_handling():
     """Verify string handling (Resolution logic)."""
     evaluator = BrierScoreEvaluator()
@@ -56,12 +69,60 @@ def test_string_ground_truth_handling():
     assert score == (0.1 - 0.0) ** 2
 
 
+@pytest.mark.parametrize(
+    ("ground_truth", "normalized"),
+    [
+        (True, 1.0),
+        (False, 0.0),
+        (1, 1.0),
+        (0, 0.0),
+        (1.0, 1.0),
+        (0.0, 0.0),
+        (" true ", 1.0),
+        ("FALSE", 0.0),
+        ("won", 1.0),
+        ("lost", 0.0),
+    ],
+)
+def test_brier_score_normalizes_binary_outcomes(ground_truth, normalized):
+    evaluator = BrierScoreEvaluator()
+
+    assert evaluator.score(prediction=normalized, ground_truth=ground_truth) == 0.0
+
+
+@pytest.mark.parametrize("prediction", [None, "invalid", float("nan"), float("inf"), float("-inf"), -0.01, 1.01])
+def test_brier_score_rejects_invalid_predictions(prediction):
+    evaluator = BrierScoreEvaluator()
+
+    with pytest.raises(ValueError):
+        evaluator.score(prediction=prediction, ground_truth=1)
+
+
+def test_brier_evaluate_rejects_invalid_inputs():
+    evaluator = BrierScoreEvaluator()
+
+    with pytest.raises(ValueError):
+        evaluator.evaluate(prediction=float("nan"), ground_truth=1, subject_id="invalid-prediction")
+    with pytest.raises(ValueError):
+        evaluator.evaluate(prediction=0.5, ground_truth="unknown", subject_id="invalid-outcome")
+
+
+@pytest.mark.parametrize("ground_truth", [None, "", "unknown", float("nan"), float("inf"), -1, 2])
+def test_brier_score_rejects_missing_or_invalid_outcomes(ground_truth):
+    evaluator = BrierScoreEvaluator()
+
+    with pytest.raises(ValueError):
+        evaluator.score(prediction=0.5, ground_truth=ground_truth)
+
+
 def test_brier_decomposition_skips_invalid_predictions_consistently():
     evaluator = BrierScoreEvaluator()
     results = [
         EvaluationResult(subject_id="a", prediction=0.8, ground_truth=1, score=0.04),
         EvaluationResult(subject_id="b", prediction=0.2, ground_truth=0, score=0.04),
         EvaluationResult(subject_id="c", prediction="invalid", ground_truth=1, score=1.0),
+        EvaluationResult(subject_id="d", prediction=float("nan"), ground_truth=1, score=1.0),
+        EvaluationResult(subject_id="e", prediction=0.4, ground_truth=None, score=1.0),
     ]
 
     decomp = evaluator.compute_decomposition(results, num_bins=2)
@@ -75,6 +136,8 @@ def test_brier_decomposition_all_invalid_returns_zero():
     results = [
         EvaluationResult(subject_id="a", prediction="invalid", ground_truth=1, score=1.0),
         EvaluationResult(subject_id="b", prediction=None, ground_truth=0, score=1.0),
+        EvaluationResult(subject_id="c", prediction=0.5, ground_truth=None, score=1.0),
+        EvaluationResult(subject_id="d", prediction=0.5, ground_truth=float("nan"), score=1.0),
     ]
 
     decomp = evaluator.compute_decomposition(results)

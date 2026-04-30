@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from xrtm.eval.core.eval.definitions import EvaluationResult
 from xrtm.eval.kit.eval.metrics import ExpectedCalibrationErrorEvaluator
 
@@ -52,32 +54,69 @@ def test_ece_mixed_types():
     assert abs(ece - 0.15) < 1e-6
 
 
-def test_ece_out_of_bounds():
+def test_ece_clamps_out_of_bounds_predictions_for_compatibility():
     evaluator = ExpectedCalibrationErrorEvaluator(num_bins=10)
     results = [
         EvaluationResult(subject_id="1", score=0, ground_truth=1, prediction=1.5, metadata={}),
         EvaluationResult(subject_id="2", score=0, ground_truth=0, prediction=-0.5, metadata={}),
+        EvaluationResult(subject_id="3", score=0, ground_truth=1, prediction=0.5, metadata={}),
     ]
-    # Prediction 1.5 -> Clamped to 1.0 -> Bin 9 (last bin)
-    # Prediction -0.5 -> Clamped to 0.0 -> Bin 0
-
-    # Bin 9: 1 item. pred 1.5. gt 1. mean_conf 1.5. mean_acc 1. abs(1 - 1.5) = 0.5
-    # Bin 0: 1 item. pred -0.5. gt 0. mean_conf -0.5. mean_acc 0. abs(0 - -0.5) = 0.5
-
-    # ECE = 0.5 * 0.5 + 0.5 * 0.5 = 0.5
 
     ece, bins = evaluator.compute_calibration_data(results)
-    assert abs(ece - 0.5) < 1e-6
+    assert ece == pytest.approx((0.0 + 0.0 + 0.5) / 3)
+    assert sum(bin.count for bin in bins) == 3
+    assert bins[0].count == 1
+    assert bins[5].count == 1
+    assert bins[5].mean_prediction == 0.5
+    assert bins[9].count == 1
 
-    # Check stored bins for correct values
-    # The last bin should have mean_prediction 1.5
-    assert abs(bins[9].mean_prediction - 1.5) < 1e-6
-    # The first bin should have mean_prediction -0.5
-    assert abs(bins[0].mean_prediction + 0.5) < 1e-6
+
+def test_ece_skips_nan_none_and_missing_outcomes():
+    evaluator = ExpectedCalibrationErrorEvaluator(num_bins=4)
+    results = [
+        EvaluationResult(subject_id="valid", score=0, ground_truth=0, prediction="0.25", metadata={}),
+        EvaluationResult(subject_id="nan-pred", score=0, ground_truth=1, prediction=float("nan"), metadata={}),
+        EvaluationResult(subject_id="inf-pred", score=0, ground_truth=1, prediction=float("inf"), metadata={}),
+        EvaluationResult(subject_id="none-pred", score=0, ground_truth=1, prediction=None, metadata={}),
+        EvaluationResult(subject_id="none-outcome", score=0, ground_truth=None, prediction=0.5, metadata={}),
+        EvaluationResult(subject_id="nan-outcome", score=0, ground_truth=float("nan"), prediction=0.5, metadata={}),
+        EvaluationResult(subject_id="unknown-outcome", score=0, ground_truth="unknown", prediction=0.5, metadata={}),
+    ]
+
+    ece, bins = evaluator.compute_calibration_data(results)
+
+    assert ece == 0.25
+    assert sum(bin.count for bin in bins) == 1
+    assert bins[1].count == 1
+    assert bins[1].mean_prediction == 0.25
+    assert bins[1].mean_ground_truth == 0.0
+
+
+def test_calibration_bin_boundaries_count_each_valid_prediction_once():
+    evaluator = ExpectedCalibrationErrorEvaluator(num_bins=10)
+    probabilities = [0.0, 0.099999, 0.1, 0.999999, 1.0]
+    results = [
+        EvaluationResult(subject_id=str(i), score=0, ground_truth=1, prediction=probability, metadata={})
+        for i, probability in enumerate(probabilities)
+    ]
+
+    ece, bins = evaluator.compute_calibration_data(results)
+
+    assert 0.0 <= ece <= 1.0
+    assert sum(bin.count for bin in bins) == len(probabilities)
+    assert bins[0].count == 2
+    assert bins[1].count == 1
+    assert bins[-1].count == 2
+
+
+@pytest.mark.parametrize("num_bins", [0, -1, 1.5, True])
+def test_ece_rejects_invalid_num_bins(num_bins):
+    with pytest.raises(ValueError):
+        ExpectedCalibrationErrorEvaluator(num_bins=num_bins)
 
 
 if __name__ == "__main__":
     test_ece_basic()
     test_ece_mixed_types()
-    test_ece_out_of_bounds()
+    test_ece_clamps_out_of_bounds_predictions_for_compatibility()
     print("All tests passed!")

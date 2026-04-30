@@ -20,27 +20,67 @@ Provides concrete ``Evaluator`` implementations for Brier Score and
 Expected Calibration Error (ECE), including full Murphy decomposition.
 """
 
+import math
 from typing import Any, List, Tuple, Union
 
 from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult, Evaluator, ReliabilityBin
 
 TRUE_VALUES = {"yes", "1", "true", "won", "pass"}
+FALSE_VALUES = {"no", "0", "false", "lost", "fail"}
 
 
 def _normalize_ground_truth(ground_truth: Any) -> float:
+    if ground_truth is None:
+        raise ValueError("Ground truth outcome is missing.")
+
+    if isinstance(ground_truth, bool):
+        return 1.0 if ground_truth else 0.0
+
     if isinstance(ground_truth, str):
-        return 1.0 if ground_truth.lower() in TRUE_VALUES else 0.0
-    return 1.0 if ground_truth else 0.0
+        normalized = ground_truth.strip().lower()
+        if normalized in TRUE_VALUES:
+            return 1.0
+        if normalized in FALSE_VALUES:
+            return 0.0
+        raise ValueError(f"Ground truth must be a recognized binary outcome. Got {ground_truth!r}")
+
+    try:
+        outcome = float(ground_truth)
+    except (ValueError, TypeError):
+        raise ValueError(f"Ground truth must be a binary outcome. Got {ground_truth!r}")
+
+    if not math.isfinite(outcome) or outcome not in {0.0, 1.0}:
+        raise ValueError(f"Ground truth must be 0 or 1. Got {ground_truth!r}")
+    return outcome
+
+
+def _normalize_probability(prediction: Any) -> float:
+    try:
+        probability = float(prediction)
+    except (ValueError, TypeError):
+        raise ValueError(f"Prediction must be convertible to float. Got {prediction!r}")
+
+    if not math.isfinite(probability) or probability < 0.0 or probability > 1.0:
+        raise ValueError(f"Prediction must be a finite probability in [0, 1]. Got {prediction!r}")
+
+    return probability
+
+
+def _coerce_calibration_probability(prediction: Any) -> float:
+    try:
+        probability = float(prediction)
+    except (ValueError, TypeError):
+        raise ValueError(f"Prediction must be convertible to float. Got {prediction!r}")
+
+    if not math.isfinite(probability):
+        raise ValueError(f"Prediction must be finite. Got {prediction!r}")
+    return min(max(probability, 0.0), 1.0)
 
 
 class BrierScoreEvaluator(Evaluator):
     r"""Evaluator that computes the Brier score for binary probabilistic predictions."""
     def score(self, prediction: Union[float, Any], ground_truth: Union[int, bool, str, Any]) -> float:
-        try:
-            f = float(prediction)
-        except (ValueError, TypeError):
-            raise ValueError(f"Prediction must be convertible to float. Got {prediction}")
-
+        f = _normalize_probability(prediction)
         o = _normalize_ground_truth(ground_truth)
 
         return (f - o) ** 2
@@ -62,7 +102,9 @@ class BrierScoreEvaluator(Evaluator):
         valid_results = []
         for r in results:
             try:
-                valid_results.append((float(r.prediction), _normalize_ground_truth(r.ground_truth)))
+                valid_results.append(
+                    (_coerce_calibration_probability(r.prediction), _normalize_ground_truth(r.ground_truth))
+                )
             except (ValueError, TypeError):
                 continue
 
@@ -89,6 +131,8 @@ class BrierScoreEvaluator(Evaluator):
 class ExpectedCalibrationErrorEvaluator(Evaluator):
     r"""Evaluator that computes Expected Calibration Error via reliability diagrams."""
     def __init__(self, num_bins: int = 10):
+        if not isinstance(num_bins, int) or isinstance(num_bins, bool) or num_bins <= 0:
+            raise ValueError(f"num_bins must be a positive integer. Got {num_bins!r}")
         self.num_bins = num_bins
 
     def score(self, prediction: Any, ground_truth: Any) -> float:
@@ -103,15 +147,14 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
 
         for res in results:
             try:
-                raw_conf = float(res.prediction)
-                conf = min(max(raw_conf, 0.0), 1.0)
+                conf = _coerce_calibration_probability(res.prediction)
                 idx = int(conf / bin_size)
                 if idx == self.num_bins:
                     idx -= 1
 
                 normalized_gt = _normalize_ground_truth(res.ground_truth)
 
-                bins[idx].append((raw_conf, normalized_gt))
+                bins[idx].append((conf, normalized_gt))
             except (ValueError, TypeError):
                 continue
 
