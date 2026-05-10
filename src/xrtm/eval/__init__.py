@@ -13,6 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from xrtm.eval.core.eval.benchmark_artifacts import (
+    EXTERNAL_BENCHMARK_REPORTING_LANES,
+    INTERNAL_STRESS_REPORTING_LANE,
+    BenchmarkComparisonRow,
+    BenchmarkComparisonSnapshot,
+    BenchmarkReportingLane,
+    BenchmarkScoreSummary,
+    ExternalBenchmarkReportingLane,
+    ExternalComparisonRecord,
+    ExternalLeaderboardEntry,
+    ExternalLeaderboardSnapshot,
+    InspectableOutputReference,
+    PublicScorecardRow,
+    PublicScorecardSnapshot,
+    ScoreInterval,
+)
 from xrtm.eval.core.eval.definitions import (
     EvaluationReport,
     EvaluationResult,
@@ -27,6 +43,20 @@ __all__ = [
     "Evaluator",
     "EvaluationResult",
     "EvaluationReport",
+    "BenchmarkReportingLane",
+    "ScoreInterval",
+    "BenchmarkComparisonRow",
+    "BenchmarkComparisonSnapshot",
+    "BenchmarkScoreSummary",
+    "ExternalBenchmarkReportingLane",
+    "EXTERNAL_BENCHMARK_REPORTING_LANES",
+    "INTERNAL_STRESS_REPORTING_LANE",
+    "InspectableOutputReference",
+    "ExternalComparisonRecord",
+    "ExternalLeaderboardEntry",
+    "ExternalLeaderboardSnapshot",
+    "PublicScorecardRow",
+    "PublicScorecardSnapshot",
     "BrierScoreEvaluator",
     "ExpectedCalibrationErrorEvaluator",
 ]
