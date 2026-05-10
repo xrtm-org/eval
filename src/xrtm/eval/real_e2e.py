@@ -26,6 +26,7 @@ from xrtm.data.core.schemas.forecast import ForecastOutput
 from xrtm.data.corpora import REAL_BINARY_CORPUS_ID, load_real_binary_resolved_outcomes
 
 from xrtm.eval.core.eval.definitions import EvaluationReport
+from xrtm.eval.kit.eval.analytics import SliceAnalytics
 from xrtm.eval.kit.eval.metrics import BrierScoreEvaluator, ExpectedCalibrationErrorEvaluator
 
 
@@ -121,6 +122,7 @@ def evaluate_resolved_forecasts(
         total_evaluations=total,
         results=results,
         reliability_bins=reliability_bins,
+        slices=SliceAnalytics.compute_slices(results),
         summary_statistics={
             "brier_score": mean_brier,
             "ece": ece,
