@@ -21,18 +21,22 @@ from xrtm.eval.kit.eval.intervention import InterventionEngine
 
 def _forecast_output() -> ForecastOutput:
     return ForecastOutput(
-        question_id="q1",
+        forecast_request_id="q1",
         probability=0.5,
-        reasoning="test",
-        logical_trace=[
-            CausalNode(node_id="a", event="A", probability=0.5),
-            CausalNode(node_id="b", event="B", probability=0.5),
-            CausalNode(node_id="c", event="C", probability=0.5),
-        ],
-        logical_edges=[
-            CausalEdge(source="a", target="b", weight=0.5),
-            CausalEdge(source="b", target="c", weight=0.5),
-        ],
+        reasoning_trace={
+            "narrative": "test",
+            "causal_graph": {
+                "nodes": [
+                    CausalNode(node_id="a", event="A", probability=0.5),
+                    CausalNode(node_id="b", event="B", probability=0.5),
+                    CausalNode(node_id="c", event="C", probability=0.5),
+                ],
+                "edges": [
+                    CausalEdge(source="a", target="b", weight=0.5),
+                    CausalEdge(source="b", target="c", weight=0.5),
+                ],
+            },
+        },
     )
 
 
@@ -45,7 +49,7 @@ def test_apply_intervention_updates_downstream_probabilities_without_mutating_or
     assert new_output.logical_trace[0].probability == 0.9
     assert new_output.logical_trace[1].probability > 0.5
     assert new_output.logical_trace[2].probability > 0.5
-    assert new_output.confidence == pytest.approx(new_output.logical_trace[2].probability)
+    assert new_output.probability == pytest.approx(new_output.logical_trace[2].probability)
 
 
 def test_apply_intervention_rejects_missing_node():
@@ -55,16 +59,20 @@ def test_apply_intervention_rejects_missing_node():
 
 def test_apply_intervention_handles_none_leaf_probability():
     output = ForecastOutput(
-        question_id="q1",
+        forecast_request_id="q1",
         probability=0.5,
-        reasoning="test",
-        logical_trace=[
-            CausalNode(node_id="a", event="A", probability=0.5),
-            CausalNode(node_id="b", event="B", probability=None),
-        ],
-        logical_edges=[],
+        reasoning_trace={
+            "narrative": "test",
+            "causal_graph": {
+                "nodes": [
+                    CausalNode(node_id="a", event="A", probability=0.5),
+                    CausalNode(node_id="b", event="B", probability=None),
+                ],
+                "edges": [],
+            },
+        },
     )
 
     new_output = InterventionEngine.apply_intervention(output, node_id="a", new_probability=0.9)
 
-    assert new_output.confidence == pytest.approx(0.45)
+    assert new_output.probability == pytest.approx(0.45)

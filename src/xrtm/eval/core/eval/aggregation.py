@@ -47,7 +47,7 @@ def inverse_variance_weighting(
     weights = []
 
     for p in predictions:
-        val = p.confidence
+        val = p.probability
         if p.uncertainty is not None:
             variance = p.uncertainty
         else:

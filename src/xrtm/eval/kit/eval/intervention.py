@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-r"""Causal graph intervention analysis.
+r"""Reasoning-trace intervention analysis.
 
 Provides the ``InterventionEngine`` that applies do-calculus-style
 interventions to a ``ForecastOutput`` by setting a node's probability to a
-fixed value and propagating the change through the causal graph using
+fixed value and propagating the change through the qualified causal graph using
 topological ordering.
 """
 
@@ -35,16 +35,16 @@ class InterventionEngine:
         new_output = output.model_copy(deep=True)
         dg = new_output.to_networkx()
         if node_id not in dg:
-            raise ValueError(f"Node ID '{node_id}' not found in the causal graph.")
-        for node in new_output.logical_trace:
+            raise ValueError(f"Node ID '{node_id}' not found in the qualified causal graph.")
+        for node in new_output.forecast_path:
             if node.node_id == node_id:
                 node.probability = new_probability
                 break
         else:
-            raise ValueError(f"Node ID '{node_id}' not found in logical_trace.")
+            raise ValueError(f"Node ID '{node_id}' not found in forecast_path.")
         nodes_ordered = list(nx.topological_sort(dg))
         start_index = nodes_ordered.index(node_id)
-        trace_map = {node.node_id: node for node in reversed(new_output.logical_trace)}
+        trace_map = {node.node_id: node for node in reversed(new_output.forecast_path)}
         for current_id in nodes_ordered[start_index:]:
             current_node = trace_map[current_id]
             for _, target_id, data in dg.out_edges(current_id, data=True):
@@ -60,10 +60,10 @@ class InterventionEngine:
             leaf_probabilities = []
             for leaf_id in leaf_nodes:
                 if leaf_id not in trace_map:
-                    raise ValueError(f"Leaf node ID '{leaf_id}' not found in logical_trace.")
+                    raise ValueError(f"Leaf node ID '{leaf_id}' not found in forecast_path.")
                 leaf_probabilities.append(trace_map[leaf_id].probability or 0.0)
             avg_leaf_prob = sum(leaf_probabilities) / len(leaf_nodes)
-            new_output.confidence = avg_leaf_prob
+            new_output.probability = avg_leaf_prob
         return new_output
 
 

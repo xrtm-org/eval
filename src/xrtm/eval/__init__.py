@@ -37,6 +37,8 @@ from xrtm.eval.core.eval.definitions import (
 from xrtm.eval.kit.eval.metrics import (
     BrierScoreEvaluator,
     ExpectedCalibrationErrorEvaluator,
+    LogScoreEvaluator,
+    summarize_binary_forecasts,
 )
 
 __all__ = [
@@ -59,4 +61,6 @@ __all__ = [
     "PublicScorecardSnapshot",
     "BrierScoreEvaluator",
     "ExpectedCalibrationErrorEvaluator",
+    "LogScoreEvaluator",
+    "summarize_binary_forecasts",
 ]

@@ -18,7 +18,8 @@ Where $f_t$ is the forecast probability and $o_t$ is the outcome (0 or 1).
 
 ## Expected Calibration Error (ECE)
 
-ECE is the weighted average of the gap between confidence and accuracy bins.
+ECE is the weighted average of the gap between forecast-probability and
+accuracy bins.
 
 $$ ECE = \sum_{k=1}^K \frac{|B_k|}{N} | acc(B_k) - conf(B_k) | $$
 

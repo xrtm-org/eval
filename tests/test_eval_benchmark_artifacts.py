@@ -101,7 +101,7 @@ def test_external_leaderboard_snapshot_converts_to_external_records() -> None:
     records = snapshot.to_external_records(metadata={"capture_id": "snap-001"}, notes=["captured from public leaderboard"])
 
     assert len(records) == 1
-    assert records[0].reporting_lane == "public-leaderboard"
+    assert records[0].evaluation_path == "public-leaderboard"
     assert records[0].source_name == "ForecastBench"
     assert records[0].source_url == "https://bench.example/leaderboard"
     assert records[0].metadata["track"] == "open"
@@ -116,7 +116,7 @@ def test_external_comparison_record_renders_public_scorecard_row() -> None:
         benchmark_name="ForecastBench",
         system_id="public-human",
         display_name="Metaculus Community",
-        reporting_lane="public-inspectable-output",
+        evaluation_path="public-inspectable-output",
         primary_score_name="brier",
         primary_score=0.16,
         captured_at=datetime(2026, 5, 7, tzinfo=timezone.utc),
@@ -135,7 +135,7 @@ def test_external_comparison_record_renders_public_scorecard_row() -> None:
     row = record.to_scorecard_row(lane="public-review")
 
     assert row.lane == "public-review"
-    assert row.reporting_lane == "public-inspectable-output"
+    assert row.evaluation_path == "public-inspectable-output"
     assert row.is_external_reference is True
     assert row.inspectable_output is not None
     assert row.inspectable_output.artifact_format == "jsonl"
@@ -170,7 +170,7 @@ def test_public_scorecard_snapshot_collects_benchmark_ids() -> None:
                 system_id="metaculus-community",
                 display_name="Metaculus Community",
                 lane="public",
-                reporting_lane="public-human-baseline",
+                evaluation_path="public-human-baseline",
                 primary_score_name="brier",
                 primary_score=0.16,
                 source_name="Metaculus",
@@ -179,6 +179,7 @@ def test_public_scorecard_snapshot_collects_benchmark_ids() -> None:
     )
 
     assert snapshot.benchmark_ids() == ["forecastbench", "futureeval"]
+    assert snapshot.evaluation_paths() == ["internal-stress-suite", "public-human-baseline"]
     assert snapshot.reporting_lanes() == ["internal-stress-suite", "public-human-baseline"]
     assert len(snapshot.internal_rows()) == 2
     assert len(snapshot.external_rows()) == 1

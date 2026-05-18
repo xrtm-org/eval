@@ -20,7 +20,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from xrtm.eval.core.eval.definitions import EvaluationReport
 
@@ -142,7 +142,7 @@ class ExternalLeaderboardSnapshot(BaseModel):
                 benchmark_name=self.benchmark_name,
                 system_id=entry.system_id,
                 display_name=entry.display_name,
-                reporting_lane="public-leaderboard",
+                evaluation_path="public-leaderboard",
                 primary_score_name=entry.score_name,
                 primary_score=entry.score,
                 captured_at=self.captured_at,
@@ -176,11 +176,16 @@ class InspectableOutputReference(BaseModel):
 class ExternalComparisonRecord(BaseModel):
     """Typed public comparison record for human baselines and external systems."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     benchmark_id: str
     benchmark_name: str
     system_id: str
     display_name: str
-    reporting_lane: ExternalBenchmarkReportingLane
+    evaluation_path: ExternalBenchmarkReportingLane = Field(
+        ...,
+        validation_alias=AliasChoices("evaluation_path", "reporting_lane"),
+    )
     primary_score_name: str
     primary_score: float
     captured_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -196,6 +201,16 @@ class ExternalComparisonRecord(BaseModel):
     inspectable_output: Optional[InspectableOutputReference] = None
     notes: list[str] = Field(default_factory=list)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @property
+    def reporting_lane(self) -> ExternalBenchmarkReportingLane:
+        """Backward compatibility alias for ``evaluation_path``."""
+        return self.evaluation_path
+
+    @reporting_lane.setter
+    def reporting_lane(self, value: ExternalBenchmarkReportingLane) -> None:
+        """Backward compatibility setter for ``evaluation_path``."""
+        self.evaluation_path = value
 
     def to_scorecard_row(
         self,
@@ -215,7 +230,7 @@ class ExternalComparisonRecord(BaseModel):
             system_id=self.system_id,
             display_name=self.display_name,
             lane=lane or self.reporting_lane,
-            reporting_lane=self.reporting_lane,
+            evaluation_path=self.evaluation_path,
             primary_score_name=self.primary_score_name,
             primary_score=self.primary_score,
             captured_at=self.captured_at,
@@ -236,12 +251,17 @@ class ExternalComparisonRecord(BaseModel):
 class PublicScorecardRow(BaseModel):
     """One public-facing scorecard row for a system on a benchmark."""
 
+    model_config = ConfigDict(populate_by_name=True)
+
     benchmark_id: str
     benchmark_name: str
     system_id: str
     display_name: str
     lane: str
-    reporting_lane: BenchmarkReportingLane = INTERNAL_STRESS_REPORTING_LANE
+    evaluation_path: BenchmarkReportingLane = Field(
+        default=INTERNAL_STRESS_REPORTING_LANE,
+        validation_alias=AliasChoices("evaluation_path", "reporting_lane"),
+    )
     primary_score_name: str
     primary_score: float
     captured_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -258,9 +278,19 @@ class PublicScorecardRow(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
 
     @property
+    def reporting_lane(self) -> BenchmarkReportingLane:
+        """Backward compatibility alias for ``evaluation_path``."""
+        return self.evaluation_path
+
+    @reporting_lane.setter
+    def reporting_lane(self, value: BenchmarkReportingLane) -> None:
+        """Backward compatibility setter for ``evaluation_path``."""
+        self.evaluation_path = value
+
+    @property
     def is_external_reference(self) -> bool:
         """Whether this row comes from the public external comparison lane."""
-        return self.reporting_lane in EXTERNAL_BENCHMARK_REPORTING_LANES
+        return self.evaluation_path in EXTERNAL_BENCHMARK_REPORTING_LANES
 
 
 class PublicScorecardSnapshot(BaseModel):
@@ -277,7 +307,11 @@ class PublicScorecardSnapshot(BaseModel):
 
     def reporting_lanes(self) -> list[str]:
         """Return the unique reporting lanes represented in this snapshot."""
-        return sorted({row.reporting_lane for row in self.rows})
+        return self.evaluation_paths()
+
+    def evaluation_paths(self) -> list[str]:
+        """Return the unique evaluation paths represented in this snapshot."""
+        return sorted({row.evaluation_path for row in self.rows})
 
     def external_rows(self) -> list[PublicScorecardRow]:
         """Return rows sourced from public human or competitor references."""
