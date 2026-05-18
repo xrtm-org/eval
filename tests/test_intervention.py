@@ -21,7 +21,7 @@ from xrtm.eval.kit.eval.intervention import InterventionEngine
 
 def _forecast_output() -> ForecastOutput:
     return ForecastOutput(
-        forecast_request_id="q1",
+        question_id="q1",
         probability=0.5,
         reasoning_trace={
             "narrative": "test",
@@ -59,7 +59,7 @@ def test_apply_intervention_rejects_missing_node():
 
 def test_apply_intervention_handles_none_leaf_probability():
     output = ForecastOutput(
-        forecast_request_id="q1",
+        question_id="q1",
         probability=0.5,
         reasoning_trace={
             "narrative": "test",
