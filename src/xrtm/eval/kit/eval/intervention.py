@@ -31,20 +31,26 @@ logger = logging.getLogger(__name__)
 
 class InterventionEngine:
     @staticmethod
+    def _forecast_path(output: ForecastOutput):
+        forecast_path = getattr(output, "forecast_path", None)
+        return forecast_path if forecast_path is not None else output.logical_trace
+
+    @staticmethod
     def apply_intervention(output: ForecastOutput, node_id: str, new_probability: float) -> ForecastOutput:
         new_output = output.model_copy(deep=True)
         dg = new_output.to_networkx()
         if node_id not in dg:
             raise ValueError(f"Node ID '{node_id}' not found in the qualified causal graph.")
-        for node in new_output.forecast_path:
+        forecast_path = InterventionEngine._forecast_path(new_output)
+        for node in forecast_path:
             if node.node_id == node_id:
                 node.probability = new_probability
                 break
         else:
-            raise ValueError(f"Node ID '{node_id}' not found in forecast_path.")
+            raise ValueError(f"Node ID '{node_id}' not found in forecast_path/logical_trace.")
         nodes_ordered = list(nx.topological_sort(dg))
         start_index = nodes_ordered.index(node_id)
-        trace_map = {node.node_id: node for node in reversed(new_output.forecast_path)}
+        trace_map = {node.node_id: node for node in reversed(forecast_path)}
         for current_id in nodes_ordered[start_index:]:
             current_node = trace_map[current_id]
             for _, target_id, data in dg.out_edges(current_id, data=True):
