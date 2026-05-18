@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add canonical binary log score and dashboard-ready binary forecast scoring aggregation helpers.
 
+### Changed
+- Standardize evaluation artifact terminology around evaluation paths and reasoning traces.
+- Require the released `xrtm-data>=0.2.7` floor for the coordinated terminology train.
+
+### Fixed
+- Preserve compatibility with current data-main forecast question fields while accepting terminology-aligned aliases.
+
 ## [0.2.6] - 2026-05-10
 
 ### Added
