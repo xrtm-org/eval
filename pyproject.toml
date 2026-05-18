@@ -16,7 +16,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "numpy>=1.24.0",
     "networkx>=3.0",
-    "xrtm-data>=0.2.6",
+    "xrtm-data>=0.2.7",
 ]
 
 [project.optional-dependencies]
