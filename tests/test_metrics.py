@@ -13,9 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
+
 import pytest
 
-from xrtm.eval import BrierScoreEvaluator, ExpectedCalibrationErrorEvaluator
+from xrtm.eval import (
+    BrierScoreEvaluator,
+    ExpectedCalibrationErrorEvaluator,
+    LogScoreEvaluator,
+    summarize_binary_forecasts,
+)
 from xrtm.eval.core.eval.definitions import EvaluationResult
 
 
@@ -146,3 +153,39 @@ def test_brier_decomposition_all_invalid_returns_zero():
     assert decomp.score == 0.0
     assert ece == 0.0
     assert sum(bin.count for bin in bins) == 0
+
+
+def test_log_score_evaluator_scores_binary_forecasts():
+    evaluator = LogScoreEvaluator()
+
+    assert evaluator.score(prediction=0.9, ground_truth=True) == pytest.approx(-math.log(0.9))
+    assert evaluator.score(prediction=0.2, ground_truth=False) == pytest.approx(0.2231435513142097)
+
+
+def test_log_score_evaluator_clamps_extreme_probabilities():
+    evaluator = LogScoreEvaluator(epsilon=1e-6)
+
+    assert evaluator.score(prediction=1.0, ground_truth=True) == pytest.approx(-math.log(1.0 - 1e-6))
+    assert evaluator.score(prediction=0.0, ground_truth=False) == pytest.approx(-math.log(1.0 - 1e-6))
+
+
+def test_summarize_binary_forecasts_returns_dashboard_aggregation():
+    summary = summarize_binary_forecasts(
+        [
+            (0.9, True),
+            (0.2, False),
+            ("bad", True),
+            (0.7, None),
+        ],
+        num_bins=10,
+    )
+
+    assert summary["resolved_count"] == 2
+    assert summary["skipped_count"] == 2
+    assert summary["brier_score"] == pytest.approx(((0.9 - 1.0) ** 2 + (0.2 - 0.0) ** 2) / 2)
+    assert summary["ece"] == pytest.approx((abs(1.0 - 0.9) + abs(0.0 - 0.2)) / 2)
+    assert summary["log_score"] == pytest.approx((-math.log(0.9) - math.log(0.8)) / 2)
+    assert len(summary["calibration_curve"]) == 10
+    assert sum(bucket["count"] for bucket in summary["calibration_curve"]) == 2
+    assert summary["calibration_curve"][2]["count"] == 1
+    assert summary["calibration_curve"][9]["observed_true"] == 1

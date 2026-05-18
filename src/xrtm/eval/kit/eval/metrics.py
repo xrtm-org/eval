@@ -21,7 +21,7 @@ Expected Calibration Error (ECE), including full Murphy decomposition.
 """
 
 import math
-from typing import Any, List, Tuple, Union
+from typing import Any, Iterable, List, Tuple, Union
 
 from xrtm.eval.core.eval.definitions import BrierDecomposition, EvaluationResult, Evaluator, ReliabilityBin
 
@@ -183,4 +183,111 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
         return ece, reliability_data
 
 
-__all__ = ["BrierScoreEvaluator", "ExpectedCalibrationErrorEvaluator"]
+class LogScoreEvaluator(Evaluator):
+    r"""Evaluator that computes binary negative log score for probabilistic predictions."""
+
+    def __init__(self, epsilon: float = 1e-15):
+        if not math.isfinite(epsilon) or epsilon <= 0.0 or epsilon >= 0.5:
+            raise ValueError(f"epsilon must be a finite value in (0, 0.5). Got {epsilon!r}")
+        self.epsilon = epsilon
+
+    def score(self, prediction: Any, ground_truth: Any) -> float:
+        probability = _normalize_probability(prediction)
+        outcome = _normalize_ground_truth(ground_truth)
+        clamped_probability = min(max(probability, self.epsilon), 1.0 - self.epsilon)
+        likelihood = clamped_probability if outcome == 1.0 else 1.0 - clamped_probability
+        return -math.log(likelihood)
+
+    def evaluate(self, prediction: Any, ground_truth: Any, subject_id: str) -> EvaluationResult:
+        s = self.score(prediction, ground_truth)
+        return EvaluationResult(
+            subject_id=subject_id,
+            score=s,
+            ground_truth=ground_truth,
+            prediction=prediction,
+            metadata={"metric": "Log Score"},
+        )
+
+
+def summarize_binary_forecasts(
+    records: Iterable[Tuple[Any, Any]],
+    *,
+    num_bins: int = 10,
+) -> dict[str, Any]:
+    r"""Summarize binary probabilistic forecasts with dashboard-ready scoring primitives.
+
+    ``records`` is an iterable of ``(prediction_probability, binary_outcome)``
+    pairs. Invalid or unresolved rows are skipped consistently across Brier,
+    ECE, reliability, calibration curve, and log score outputs.
+    """
+
+    brier = BrierScoreEvaluator()
+    log_score = LogScoreEvaluator()
+    results: List[EvaluationResult] = []
+    log_scores: List[float] = []
+    skipped_count = 0
+
+    for index, (prediction, ground_truth) in enumerate(records):
+        try:
+            probability = _normalize_probability(prediction)
+            outcome = _normalize_ground_truth(ground_truth)
+        except (ValueError, TypeError):
+            skipped_count += 1
+            continue
+        results.append(
+            EvaluationResult(
+                subject_id=str(index),
+                score=brier.score(probability, outcome),
+                ground_truth=outcome,
+                prediction=probability,
+                metadata={"metric": "Brier Score"},
+            )
+        )
+        log_scores.append(log_score.score(probability, outcome))
+
+    valid_count = len(results)
+    mean_brier = sum(result.score for result in results) / valid_count if valid_count else None
+    mean_log_score = sum(log_scores) / valid_count if valid_count else None
+    ece, reliability_bins = ExpectedCalibrationErrorEvaluator(num_bins=num_bins).compute_calibration_data(results)
+    decomposition = brier.compute_decomposition(results, num_bins=num_bins)
+
+    calibration_curve = []
+    for index, reliability_bin in enumerate(reliability_bins):
+        count = reliability_bin.count
+        probability_sum = reliability_bin.mean_prediction * count if count else 0.0
+        observed_true = int(round(reliability_bin.mean_ground_truth * count)) if count else 0
+        calibration_curve.append(
+            {
+                "index": index,
+                "label": f"{round(index * 100 / num_bins)}-{round((index + 1) * 100 / num_bins)}%",
+                "lower": index / num_bins,
+                "upper": (index + 1) / num_bins,
+                "count": count,
+                "observed_true": observed_true,
+                "probability_sum": probability_sum,
+                "mean_probability": reliability_bin.mean_prediction if count else None,
+                "observed_frequency": reliability_bin.mean_ground_truth if count else None,
+            }
+        )
+
+    return {
+        "resolved_count": valid_count,
+        "skipped_count": skipped_count,
+        "brier_score": mean_brier,
+        "ece": ece if valid_count else None,
+        "log_score": mean_log_score,
+        "reliability": decomposition.reliability if valid_count else None,
+        "resolution": decomposition.resolution if valid_count else None,
+        "uncertainty": decomposition.uncertainty if valid_count else None,
+        "decomposed_brier_score": decomposition.score if valid_count else None,
+        "reliability_bins": [bin_item.model_dump() for bin_item in reliability_bins],
+        "calibration_curve": calibration_curve,
+    }
+
+
+__all__ = [
+    "BrierScoreEvaluator",
+    "ExpectedCalibrationErrorEvaluator",
+    "LogScoreEvaluator",
+    "summarize_binary_forecasts",
+]

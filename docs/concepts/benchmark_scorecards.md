@@ -34,7 +34,8 @@ Use the external lane when a scorecard row comes from:
 - a public leaderboard snapshot
 - an inspectable third-party output artifact
 
-Those rows travel through `PublicScorecardRow.reporting_lane` as one of:
+Those rows travel through `PublicScorecardRow.evaluation_path`
+(`reporting_lane` remains a compatibility alias) as one of:
 
 - `public-human-baseline`
 - `public-leaderboard`

@@ -18,4 +18,5 @@ guardian.verify_source("https://untrusted-news.com")
 - **Blacklist**: Known hallucination-prone or disinfo sources.
 
 ### Evaluation Impact
-If a forecast relies on a blacklisted source in its `reasoning_trace`, the `EpistemicScore` is penalized, even if the probability was accurate.
+If a forecast result relies on a blacklisted source in its `reasoning_trace`,
+the `EpistemicScore` is penalized, even if the probability was accurate.

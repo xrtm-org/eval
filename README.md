@@ -6,7 +6,8 @@
 
 **The Judge for XRTM.**
 
-`xrtm-eval` is the rigorous scoring engine used to grade probabilistic forecasts. It operates independently of the inference engine to ensure objective evaluation.
+`xrtm-eval` is the rigorous scoring engine used to grade forecast results. It
+operates independently of the inference engine to ensure objective evaluation.
 
 ## Part of the XRTM Ecosystem
 
@@ -43,7 +44,8 @@ score = evaluator.score(prediction=0.7, ground_truth=1)
 ```
 
 ### 2. Expected Calibration Error (ECE)
-Use the `ExpectedCalibrationErrorEvaluator` to measure the gap between confidence and accuracy across bin buckets.
+Use the `ExpectedCalibrationErrorEvaluator` to measure the gap between forecast
+probability and realized accuracy across bin buckets.
 
 ### 3. Epistemic Trust Primitives (v0.1.1+)
 `xrtm-eval` now includes trust scoring infrastructure:
