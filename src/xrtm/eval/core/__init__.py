@@ -16,27 +16,16 @@
 r"""
 Core interfaces and domain-agnostic logic for xrtm-eval.
 
-This module exports evaluator protocols, epistemics utilities, and
-core schemas. MUST NOT import from kit/ or providers/.
+This module exports evaluator protocols and core schemas.
+MUST NOT import from kit/ or providers/.
 """
 
-from xrtm.eval.core.epistemics import (
-    IntegrityGuardian,
-    SourceTrustEntry,
-    SourceTrustRegistry,
-)
 from xrtm.eval.core.eval import EvaluationReport, EvaluationResult, Evaluator
 from xrtm.eval.core.schemas import ForecastResolution
 
 __all__ = [
-    # Evaluator protocol
     "Evaluator",
     "EvaluationResult",
     "EvaluationReport",
-    # Epistemics
-    "IntegrityGuardian",
-    "SourceTrustRegistry",
-    "SourceTrustEntry",
-    # Schemas
     "ForecastResolution",
 ]
