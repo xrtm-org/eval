@@ -1,6 +1,8 @@
 """Stub: benchmark_artifacts deferred during simplification."""
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel
 
 
@@ -15,7 +17,8 @@ class BenchmarkComparisonSnapshot(BaseModel):
 
 
 class ExternalComparisonRecord(BaseModel):
-    pass
+    def to_scorecard_row(self) -> dict[str, Any]:
+        return {}
 
 
 class ExternalLeaderboardSnapshot(BaseModel):
@@ -46,7 +49,6 @@ class PublicScorecardRow(BaseModel):
     pass
 
 
-# ExternalBenchmarkReportingLane must be a proper type for Pydantic
 ExternalBenchmarkReportingLane = str  # type: ignore
 EXTERNAL_BENCHMARK_REPORTING_LANES: list[str] = []
 INTERNAL_STRESS_REPORTING_LANE = "internal-stress"
