@@ -22,7 +22,27 @@ class ExternalLeaderboardSnapshot(BaseModel):
     pass
 
 
+class ExternalLeaderboardEntry(BaseModel):
+    pass
+
+
+class InspectableOutputReference(BaseModel):
+    pass
+
+
 class PublicScorecardSnapshot(BaseModel):
+    pass
+
+
+class BenchmarkComparisonRow(BaseModel):
+    pass
+
+
+class ScoreInterval(BaseModel):
+    pass
+
+
+class PublicScorecardRow(BaseModel):
     pass
 
 
@@ -32,12 +52,17 @@ EXTERNAL_BENCHMARK_REPORTING_LANES: list[str] = []
 INTERNAL_STRESS_REPORTING_LANE = "internal-stress"
 
 __all__ = [
+    "BenchmarkComparisonRow",
     "BenchmarkComparisonSnapshot",
     "BenchmarkScoreSummary",
     "ExternalBenchmarkReportingLane",
     "ExternalComparisonRecord",
+    "ExternalLeaderboardEntry",
     "ExternalLeaderboardSnapshot",
+    "InspectableOutputReference",
+    "PublicScorecardRow",
     "PublicScorecardSnapshot",
+    "ScoreInterval",
     "EXTERNAL_BENCHMARK_REPORTING_LANES",
     "INTERNAL_STRESS_REPORTING_LANE",
 ]
