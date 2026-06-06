@@ -1,6 +1,5 @@
 """Stub: aggregation deferred during simplification."""
 from __future__ import annotations
-from typing import Any
 
 
 def inverse_variance_weighting(predictions: list[float], variances: list[float] | None = None) -> float:

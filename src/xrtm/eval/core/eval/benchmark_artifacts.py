@@ -1,5 +1,6 @@
 """Stub: benchmark_artifacts deferred during simplification."""
 from __future__ import annotations
+
 from pydantic import BaseModel
 
 
