@@ -47,23 +47,12 @@ score = evaluator.score(prediction=0.7, ground_truth=1)
 Use the `ExpectedCalibrationErrorEvaluator` to measure the gap between forecast
 probability and realized accuracy across bin buckets.
 
-### 3. Epistemic Trust Primitives (v0.1.1+)
-`xrtm-eval` now includes trust scoring infrastructure:
-
-```python
-from xrtm.eval.core.epistemics import IntegrityGuardian, SourceTrustRegistry
-
-registry = SourceTrustRegistry()
-guardian = IntegrityGuardian(registry)
-```
-
 ## Project Structure
 
 ```
 src/xrtm/eval/
 ├── core/            # Interfaces & Schemas
 │   ├── eval/            # Evaluator protocol, EvaluationResult
-│   ├── epistemics.py    # Trust primitives (SourceTrustRegistry)
 │   └── schemas/         # ForecastResolution
 ├── kit/             # Composable evaluator implementations
 │   └── eval/metrics.py  # BrierScoreEvaluator, ECE
