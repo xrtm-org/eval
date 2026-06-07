@@ -1,24 +1,11 @@
-# xrtm-eval
+# xrtm-eval v0.3.0
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/xrtm-eval.svg)](https://pypi.org/project/xrtm-eval/)
 
 **The Judge for XRTM.**
 
-`xrtm-eval` is the rigorous scoring engine used to grade forecast results. It
-operates independently of the inference engine to ensure objective evaluation.
-
-## Part of the XRTM Ecosystem
-
-```
-Layer 4: xrtm-train    → (imports all)
-Layer 3: xrtm-forecast → (imports eval, data)
-Layer 2: xrtm-eval     → (imports data) ← YOU ARE HERE
-Layer 1: xrtm-data     → (zero dependencies)
-```
-
-`xrtm-eval` provides scoring metrics AND trust primitives used by the forecast engine.
+`xrtm-eval` is the scoring engine for probabilistic forecasts. It measures calibration, accuracy, and resolution using strict scoring rules.
 
 ## Installation
 
@@ -26,48 +13,31 @@ Layer 1: xrtm-data     → (zero dependencies)
 pip install xrtm-eval
 ```
 
-## Core Primitives
+## Scoring Metrics
 
-### 1. Brier Score Breakdown
-We do not use simple accuracy. We use the **Brier Score**, decomposed into its three component terms:
+| Metric | Class | Description |
+|--------|-------|-------------|
+| **Brier Score** | `BrierScoreEvaluator` | Mean squared error `(p - o)^2`. Murphy decomposition into reliability/resolution/uncertainty. |
+| **ECE** | `ExpectedCalibrationErrorEvaluator` | Expected Calibration Error via reliability binning. |
+| **Log Score** | `LogScoreEvaluator` | Negative log-likelihood with epsilon clamping. |
+| **Dashboard** | `summarize_binary_forecasts()` | Aggregate Brier, ECE, LogScore + calibration curve in one call. |
 
-*   **Reliability**: How well do the predicted probabilities match observed frequencies?
-*   **Resolution**: How well does the forecast distinguish between events that happen and those that don't?
-*   **Uncertainty**: The inherent difficulty of the problem.
+## Usage
 
 ```python
-from xrtm.eval import BrierScoreEvaluator
+from xrtm.eval import BrierScoreEvaluator, summarize_binary_forecasts
 
+# Single forecast
 evaluator = BrierScoreEvaluator()
-score = evaluator.score(prediction=0.7, ground_truth=1)
-# score = (0.7 - 1.0)^2 = 0.09
+score = evaluator.score(probability=0.7, ground_truth="yes")
+
+# Batch evaluation
+predictions = [(0.7, "yes"), (0.3, "no"), (0.9, "yes")]
+summary = summarize_binary_forecasts(predictions)
+print(f"Brier: {summary['brier_score']:.4f}")
+print(f"ECE:   {summary['ece']:.4f}")
 ```
 
-### 2. Expected Calibration Error (ECE)
-Use the `ExpectedCalibrationErrorEvaluator` to measure the gap between forecast
-probability and realized accuracy across bin buckets.
+## License
 
-## Project Structure
-
-```
-src/xrtm/eval/
-├── core/            # Interfaces & Schemas
-│   ├── eval/            # Evaluator protocol, EvaluationResult
-│   └── schemas/         # ForecastResolution
-├── kit/             # Composable evaluator implementations
-│   └── eval/metrics.py  # BrierScoreEvaluator, ECE
-└── providers/       # External evaluation services (future)
-```
-
-## Development
-
-Prerequisites:
-- [uv](https://github.com/astral-sh/uv)
-
-```bash
-# Install dependencies
-uv sync
-
-# Run tests
-uv run pytest
-```
+Apache 2.0
