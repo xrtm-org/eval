@@ -28,6 +28,9 @@ pip install xrtm-eval
 from xrtm.eval import BrierScoreEvaluator, summarize_binary_forecasts
 
 # Single forecast
+
+[![PyPI](https://img.shields.io/pypi/v/xrtm-eval?style=flat-square)](https://pypi.org/project/xrtm-eval/)
+
 evaluator = BrierScoreEvaluator()
 score = evaluator.score(probability=0.7, ground_truth="yes")
 
