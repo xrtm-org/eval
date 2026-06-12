@@ -1,5 +1,7 @@
 # xrtm-eval v0.3.0
 
+[![PyPI](https://img.shields.io/pypi/v/xrtm-eval?style=flat-square)](https://pypi.org/project/xrtm-eval/)
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
@@ -29,7 +31,6 @@ from xrtm.eval import BrierScoreEvaluator, summarize_binary_forecasts
 
 # Single forecast
 
-[![PyPI](https://img.shields.io/pypi/v/xrtm-eval?style=flat-square)](https://pypi.org/project/xrtm-eval/)
 
 evaluator = BrierScoreEvaluator()
 score = evaluator.score(probability=0.7, ground_truth="yes")
