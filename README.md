@@ -1,4 +1,4 @@
-# xrtm-eval v0.3.0
+# xrtm-eval v0.3.1
 
 [![PyPI](https://img.shields.io/pypi/v/xrtm-eval?style=flat-square)](https://pypi.org/project/xrtm-eval/)
 
