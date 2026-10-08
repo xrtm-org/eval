@@ -109,6 +109,22 @@ def test_calibration_bin_boundaries_count_each_valid_prediction_once():
     assert bins[-1].count == 2
 
 
+def test_exact_tenth_predictions_land_in_their_own_bins():
+    # 0.3 / 0.1 == 2.999... in binary float; the naive int() binning put exact
+    # tenths one bin low (0.3 -> bin 2, 0.6 -> 5, 0.7 -> 6).
+    evaluator = ExpectedCalibrationErrorEvaluator(num_bins=10)
+    results = [
+        EvaluationResult(subject_id=str(i), score=0, ground_truth=1, prediction=p, metadata={})
+        for i, p in enumerate([0.3, 0.6, 0.7])
+    ]
+
+    _, bins = evaluator.compute_calibration_data(results)
+
+    assert bins[3].count == 1
+    assert bins[6].count == 1
+    assert bins[7].count == 1
+
+
 @pytest.mark.parametrize("num_bins", [0, -1, 1.5, True])
 def test_ece_rejects_invalid_num_bins(num_bins):
     with pytest.raises(ValueError):
