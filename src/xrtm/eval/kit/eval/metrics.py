@@ -148,9 +148,10 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
         for res in results:
             try:
                 conf = _coerce_calibration_probability(res.prediction)
-                idx = int(conf / bin_size)
-                if idx == self.num_bins:
-                    idx -= 1
+                # `conf / bin_size` suffers float boundary artifacts (0.3 / 0.1
+                # evaluates to 2.999...), which bins exact tenths one bin low.
+                idx = min(int(conf * self.num_bins + 1e-9), self.num_bins - 1)
+                idx = max(0, idx)
 
                 normalized_gt = _normalize_ground_truth(res.ground_truth)
 
