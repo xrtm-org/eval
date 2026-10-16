@@ -86,7 +86,17 @@ class BrierScoreEvaluator(Evaluator):
         return (f - o) ** 2
 
     def evaluate(self, prediction: Any, ground_truth: Any, subject_id: str) -> EvaluationResult:
-        s = self.score(prediction, ground_truth)
+        try:
+            s = self.score(prediction, ground_truth)
+        except ValueError as exc:
+            # Governance contract: unusable rows must abstain, never crash.
+            return EvaluationResult(
+                subject_id=subject_id,
+                score=0.0,
+                ground_truth=None,
+                prediction=None,
+                metadata={"metric": "Brier Score", "abstained": True, "reason": str(exc)},
+            )
         return EvaluationResult(
             subject_id=subject_id,
             score=s,
@@ -136,10 +146,14 @@ class ExpectedCalibrationErrorEvaluator(Evaluator):
         self.num_bins = num_bins
 
     def score(self, prediction: Any, ground_truth: Any) -> float:
-        return BrierScoreEvaluator().score(prediction, ground_truth)
+        raise NotImplementedError(
+            "ExpectedCalibrationError is a set-level metric; use compute_calibration_data(results) instead."
+        )
 
     def evaluate(self, prediction: Any, ground_truth: Any, subject_id: str) -> EvaluationResult:
-        return BrierScoreEvaluator().evaluate(prediction, ground_truth, subject_id)
+        raise NotImplementedError(
+            "ExpectedCalibrationError is a set-level metric; use compute_calibration_data(results) instead."
+        )
 
     def compute_calibration_data(self, results: List[EvaluationResult]) -> Tuple[float, List[ReliabilityBin]]:
         bin_size = 1.0 / self.num_bins
@@ -200,7 +214,16 @@ class LogScoreEvaluator(Evaluator):
         return -math.log(likelihood)
 
     def evaluate(self, prediction: Any, ground_truth: Any, subject_id: str) -> EvaluationResult:
-        s = self.score(prediction, ground_truth)
+        try:
+            s = self.score(prediction, ground_truth)
+        except ValueError as exc:
+            return EvaluationResult(
+                subject_id=subject_id,
+                score=0.0,
+                ground_truth=None,
+                prediction=None,
+                metadata={"metric": "Log Score", "abstained": True, "reason": str(exc)},
+            )
         return EvaluationResult(
             subject_id=subject_id,
             score=s,
