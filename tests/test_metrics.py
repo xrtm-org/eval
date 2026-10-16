@@ -105,13 +105,20 @@ def test_brier_score_rejects_invalid_predictions(prediction):
         evaluator.score(prediction=prediction, ground_truth=1)
 
 
-def test_brier_evaluate_rejects_invalid_inputs():
+def test_brier_evaluate_abstains_and_score_rejects_invalid_inputs():
     evaluator = BrierScoreEvaluator()
 
+    # score() validates strictly...
     with pytest.raises(ValueError):
-        evaluator.evaluate(prediction=float("nan"), ground_truth=1, subject_id="invalid-prediction")
+        evaluator.score(prediction=float("nan"), ground_truth=1)
     with pytest.raises(ValueError):
-        evaluator.evaluate(prediction=0.5, ground_truth="unknown", subject_id="invalid-outcome")
+        evaluator.score(prediction=0.5, ground_truth="unknown")
+
+    # ...while evaluate() abstains instead of crashing (governance contract).
+    abstained_prediction = evaluator.evaluate(prediction=float("nan"), ground_truth=1, subject_id="invalid-prediction")
+    assert abstained_prediction.metadata.get("abstained") is True
+    abstained_outcome = evaluator.evaluate(prediction=0.5, ground_truth="unknown", subject_id="invalid-outcome")
+    assert abstained_outcome.metadata.get("abstained") is True
 
 
 @pytest.mark.parametrize("ground_truth", [None, "", "unknown", float("nan"), float("inf"), -1, 2])
@@ -189,3 +196,25 @@ def test_summarize_binary_forecasts_returns_dashboard_aggregation():
     assert sum(bucket["count"] for bucket in summary["calibration_curve"]) == 2
     assert summary["calibration_curve"][2]["count"] == 1
     assert summary["calibration_curve"][9]["observed_true"] == 1
+
+
+def test_evaluators_abstain_on_unusable_predictions():
+    """Governance: per-row evaluate() must abstain, never crash, on None rows."""
+    from xrtm.eval.kit.eval.metrics import BrierScoreEvaluator, LogScoreEvaluator
+
+    brier = BrierScoreEvaluator().evaluate(None, 1.0, "s1")
+    assert brier.metadata.get("abstained") is True
+    assert brier.ground_truth is None
+
+    log = LogScoreEvaluator().evaluate(None, 1.0, "s2")
+    assert log.metadata.get("abstained") is True
+
+
+def test_ece_score_requires_the_set_level_api():
+    """ECE is a set-level metric; per-row score() must not silently return Brier."""
+    import pytest
+
+    from xrtm.eval.kit.eval.metrics import ExpectedCalibrationErrorEvaluator
+
+    with pytest.raises(NotImplementedError):
+        ExpectedCalibrationErrorEvaluator().score(0.5, 1.0)
